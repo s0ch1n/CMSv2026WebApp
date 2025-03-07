@@ -77,7 +77,7 @@
 
 //            return doctors;
 //        }
-
+    // token numbers first should start with time 9 :0 am  like that it should genrretae
 //        // Get available time slots
 //        public async Task<Dictionary<int, TimeSpan>> GetAvailableTimeSlotsAsync(int doctorId, DateTime appointmentDate, bool isMorning)
 //        {
