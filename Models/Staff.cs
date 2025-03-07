@@ -28,8 +28,14 @@ namespace CMSv2026WebApp.Models
         [Required, MaxLength(255)]
         public string Password { get; set; }
 
+        [MaxLength(255)]
+        public string Qualification { get; set; } 
+
+        [Required, MaxLength(100), EmailAddress]
+        public string EmailAddress { get; set; } 
+
         [ForeignKey("Role")]
-        public int RoleId { get; set; }
+        public int? RoleId { get; set; }
         public Role Role { get; set; }
 
         public bool IsActive { get; set; } = true;

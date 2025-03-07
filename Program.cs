@@ -12,12 +12,16 @@ namespace CMSv2026WebApp
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            //Fetching Connection String from appsettings.json
+            var connectionString = builder.Configuration.GetConnectionString("ConnStrMVC");
+
+            //Registering Connection String in Dependency Injection
+            builder.Services.AddSingleton(connectionString);
 
             //Register Services and Repositories
-            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
-            builder.Services.AddScoped<IDoctorService, DoctorService>();
-            //builder.Services.AddScoped<IPatientRepository, PatientRepository>();
-            //builder.Services.AddScoped<IPatientService, PatientService>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+            builder.Services.AddScoped<IUserService, UserService>();
 
 
             var app = builder.Build();
@@ -39,7 +43,7 @@ namespace CMSv2026WebApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Accounts}/{action=Login}/{id?}");
 
             app.Run();
         }

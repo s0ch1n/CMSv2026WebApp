@@ -5,11 +5,13 @@ namespace CMSv2026WebApp.Repositories
     public interface IUserRepository
     {
         //Credentials
-        User AuthenticateUser(string userName, string password);
+        Staff AuthenticateUser(string userName, string password);
 
         //Register User ----> Create User by Admin
-        void AddUser(User user);
-        List<User> GetAllUsers();
+        void AddStaff(Staff staff);
+        void UpdateStaff(Staff staff);
+        void DeleteStaff(int staffId);
+        List<Staff> GetAllUsers();
         List<Role> GetAllRoles();
         void UpdateUserStatus(int userId, bool isActive);
     }
