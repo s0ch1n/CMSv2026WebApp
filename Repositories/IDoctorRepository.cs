@@ -12,6 +12,6 @@ namespace CMSv2026WebApp.Repositories
         Task RequestLabTestAsync(LabTest labTest);
         Task<IEnumerable<LabTestResult>> GetPatientLabResultsAsync(int patientId);
         Task ReferPatientAsync(Referral referral);
-
+        
     }
 }
