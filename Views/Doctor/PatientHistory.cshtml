@@ -1,0 +1,30 @@
+﻿@model IEnumerable<CMSv2026WebApp.Models.Consultation>
+
+@{
+    ViewData["Title"] = "Patient History";
+}
+
+<h1>Patient History</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Consultation ID</th>
+            <th>Diagnosis</th>
+            <th>Notes</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var consultation in Model)
+        {
+            <tr>
+                <td>@consultation.ConsultationId</td>
+                <td>@consultation.Diagnosis</td>
+                <td>@consultation.Notes</td>
+                <td>@consultation.CreatedDate.ToString("MM/dd/yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

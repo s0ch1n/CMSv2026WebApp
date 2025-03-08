@@ -12,29 +12,56 @@ namespace CMSv2026WebApp.Services
             _doctorRepository = doctorRepository;
         }
 
-        public async Task<IEnumerable<Appointment>> GetTodaysAppointmentsAsync(int doctorId)
+        public void AddConsultations(Consultation consultation)
         {
-            return await _doctorRepository.GetTodaysAppointmentsAsync(doctorId);
+            _doctorRepository.AddConsultation(consultation);
+        }
+        public List<Medicine> GetAllMedicines()
+        {
+            return _doctorRepository.GetAllMedicines();
         }
 
-        public async Task<IEnumerable<Patient>> SearchDoctorPatientsAsync(int doctorId, string searchQuery)
+        public List<LabTest> GetAllLabTests()
         {
-            return await _doctorRepository.SearchDoctorPatientsAsync(doctorId, searchQuery);
+            return _doctorRepository.GetAllLabTests();
+        }
+        public void AddPrescriptions(MedicinePrescription prescription)
+        {
+            _doctorRepository.AddPrescription(prescription);
+        }
+        public void UpdateConsultationStatus(int appointmentId, string status)
+        {
+            _doctorRepository.UpdateConsultationStatus(appointmentId, status);
         }
 
-        public async Task<IEnumerable<Consultation>> GetPatientConsultationHistoryAsync(int patientId)
+        public List<Consultation> GetPatientConsultationHistory(int patientId)
         {
-            return await _doctorRepository.GetPatientConsultationHistoryAsync(patientId);
+            return _doctorRepository.GetPatientConsultationHistory(patientId);
         }
 
-        public async Task AddConsultationAsync(Consultation consultation)
+        public List<LabTestResult> GetThePatientLabResults(int appointmentId)
         {
-            await _doctorRepository.AddConsultationAsync(consultation);
+            return _doctorRepository.GetPatientLabResults(appointmentId);
         }
 
-        public async Task AddPrescriptionAsync(MedicinePrescription prescription)
+        public List<Appointment> GetTodaysAppointments(int doctorId)
         {
-            await _doctorRepository.AddPrescriptionAsync(prescription);
+            return _doctorRepository.GetTodaysAppointments(doctorId);
+        }
+
+        public void ReferPatients(Referral referral)
+        {
+            _doctorRepository.ReferPatient(referral);
+        }
+
+        public void RequestLabTests(LabTestPrescription labTest)
+        {
+            _doctorRepository.RequestLabTest(labTest);
+        }
+
+        public List<Patient> SearchDoctorPatients(int doctorId, string searchQuery)
+        {
+            return _doctorRepository.SearchDoctorPatients(doctorId, searchQuery);
         }
     }
 }

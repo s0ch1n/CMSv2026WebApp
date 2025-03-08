@@ -1,6 +1,7 @@
 ﻿namespace CMSv2026WebApp.Models
 {
     public class LabTest
+
     {
         public int LabTestId { get; set; }  // Primary Key
         public int PatientId { get; set; }  // Foreign Key referencing Patients

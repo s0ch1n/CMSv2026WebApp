@@ -27,5 +27,14 @@ namespace CMSv2026WebApp.Models
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
+
+        // Additional properties for the view
+        public ICollection<LabTestPrescription> LabTestPrescriptions { get; set; }
+        [NotMapped]
+        public string PatientName => Patient?.PatientName;
+        [NotMapped]
+        public string Gender => Patient?.Gender;
+        [NotMapped]
+        public int Age => Patient != null ? DateTime.Now.Year - Patient.DateOfBirth.Year : 0;
     }
 }

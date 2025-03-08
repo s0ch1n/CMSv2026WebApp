@@ -4,14 +4,17 @@ namespace CMSv2026WebApp.Repositories
 {
     public interface IDoctorRepository
     {
-        Task<IEnumerable<Appointment>> GetTodaysAppointmentsAsync(int doctorId);
-        Task<IEnumerable<Patient>> SearchDoctorPatientsAsync(int doctorId, string searchQuery);
-        Task<IEnumerable<Consultation>> GetPatientConsultationHistoryAsync(int patientId);
-        Task AddConsultationAsync(Consultation consultation);
-        Task AddPrescriptionAsync(MedicinePrescription prescription);
-        Task RequestLabTestAsync(LabTest labTest);
-        Task<IEnumerable<LabTestResult>> GetPatientLabResultsAsync(int patientId);
-        Task ReferPatientAsync(Referral referral);
+        List<Appointment> GetTodaysAppointments(int doctorId);
+        List<Patient> SearchDoctorPatients(int doctorId, string searchQuery);
+        List<Consultation> GetPatientConsultationHistory(int patientId);
+        void AddConsultation(Consultation consultation);
+        void UpdateConsultationStatus(int appointmentId, string status);
+        void AddPrescription(MedicinePrescription prescription);
+        void RequestLabTest(LabTestPrescription labTest);
+        List<LabTestResult> GetPatientLabResults(int appointmentId);
+        void ReferPatient(Referral referral);
+        List<Medicine> GetAllMedicines();
+        List<LabTest> GetAllLabTests();
 
     }
 }

@@ -8,6 +8,8 @@
         public DateTime UploadDate { get; set; } = DateTime.Now; // Default to current date
 
         // Navigation Property (for Entity Framework)
-        public LabTest? LabTest { get; set; }
+
+        public LabTestPrescription LabTestPrescription { get; set; }
+        public LabTestPrescription? LabTest { get; set; }
     }
 }

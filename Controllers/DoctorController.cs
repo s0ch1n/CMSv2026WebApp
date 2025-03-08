@@ -1,123 +1,138 @@
-﻿////using CMSv2026WebApp.Services;
-//using Microsoft.AspNetCore.Mvc;
+﻿using CMSv2026WebApp.Models;
+using CMSv2026WebApp.Services;
+using CMSv2026WebApp.ViewModel;
+using Microsoft.AspNetCore.Mvc;
 
-//namespace CMSv2026WebApp.Controllers
-//{
-//    public class DoctorController : Controller
-//    {
-//        private readonly IAppointmentService _appointmentService;
-//        private readonly IPatientService _patientService;
-//        //private readonly IConsultationService _consultationService;
-//        //private readonly IPrescriptionService _prescriptionService;
-//        //private readonly ILabTestService _labTestService;
-//        private readonly IDoctorService _doctorService;
+namespace CMSv2026WebApp.Controllers
+{
+    public class DoctorController : Controller
+    {
+        //Fields
+        private readonly IUserService _userService;
+        private readonly IPatientService _patientService;
+        private readonly IAppointmentService _appointmentService;
+        private readonly IDoctorService _doctorService;
 
-//        public DoctorController(
-//            IAppointmentService appointmentService,
-//            IPatientService patientService,
-//            //IConsultationService consultationService,
-//            //IPrescriptionService prescriptionService,
-//            //ILabTestService labTestService,
-//            IDoctorService doctorService)
-//        {
-//            _appointmentService = appointmentService;
-//            _patientService = patientService;
-//            //_consultationService = consultationService;
-//            //_prescriptionService = prescriptionService;
-//            //_labTestService = labTestService;
-//            _doctorService = doctorService;
-//        }
+        //DI
+        public DoctorController(IUserService userService, IAppointmentService appointmentService, IPatientService patientService, IDoctorService doctorService)
+        {
+            _userService = userService;
+            _patientService = patientService;
+            _appointmentService = appointmentService;
+            _doctorService = doctorService;
+        }
 
-//        // Get today's appointments with status (upcoming & consulted)
-//        [HttpGet("appointments/{doctorId}")]
-//        public async Task<IActionResult> GetTodaysAppointments(int doctorId)
-//        {
-//            var appointments = await _appointmentService.GetTodaysAppointmentsAsync(doctorId);
-//            return Ok(appointments);
-//        }
+        //GET
+        public IActionResult Index()
+        {
+            if (!IsUserInRole(2))
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
 
-//        // Search past patients of the doctor
-//        [HttpGet("search-patients")]
-//        public async Task<IActionResult> SearchPatients(int doctorId, string searchQuery)
-//        {
-//            var patients = await _patientService.SearchDoctorPatientsAsync(doctorId, searchQuery);
-//            return Ok(patients);
-//        }
+            var viewModel = new DoctorViewModel
+            {
+                Staffs = _userService.GetAllStaffs(),
+                Roles = _userService.GetAllStaffRoles(),
+                Patients = _patientService.GetAllthePatients(),
+                Appointments = _appointmentService.GetTodaysAppointments()
+            };
 
-//        // Get patient history
-//        [HttpGet("patient-history/{patientId}")]
-//        public async Task<IActionResult> GetPatientHistory(int patientId)
-//        {
-//            var history = await _consultationService.GetPatientConsultationHistoryAsync(patientId);
-//            return Ok(history);
-//        }
+            ViewData["PageTitle"] = "Doctor";
+            ViewBag.Role = "Doctor";
+            ViewBag.Roles = viewModel.Roles;
+            //return Content("Doctor Dashboard)
+            return View(viewModel);
+        }
+        public IActionResult PatientHistory(int patientId)
+        {
+            var patientHistory = _doctorService.GetPatientConsultationHistory(patientId);
+            if (patientHistory == null)
+            {
+                return NotFound();
+            }
 
-//        // Add notes/diagnosis details
-//        [HttpPost("add-diagnosis")]
-//        public async Task<IActionResult> AddDiagnosis([FromBody] ConsultationRequest request)
-//        {
-//            try
-//            {
-//                await _consultationService.AddConsultationAsync(request);
-//                return Ok(new { message = "Diagnosis details saved successfully." });
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(new { error = ex.Message });
-//            }
-//        }
+            return View(patientHistory);
+        }
 
-//        // Prescribe Medicines
-//        [HttpPost("prescribe-medicine")]
-//        public async Task<IActionResult> PrescribeMedicine([FromBody] PrescriptionRequest request)
-//        {
-//            try
-//            {
-//                await _prescriptionService.AddPrescriptionAsync(request);
-//                return Ok(new { message = "Medicine prescribed successfully." });
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(new { error = ex.Message });
-//            }
-//        }
+        // GET: Doctor/LabResults/
+        public IActionResult LabResults(int appointmentId)
+        {
+            var labResults = _doctorService.GetThePatientLabResults(appointmentId);
+            if (labResults == null)
+            {
+                return NotFound();
+            }
 
-//        // Prescribe Lab Test
-//        [HttpPost("prescribe-lab-test")]
-//        public async Task<IActionResult> PrescribeLabTest([FromBody] LabTestRequest request)
-//        {
-//            try
-//            {
-//                await _labTestService.RequestLabTestAsync(request);
-//                return Ok(new { message = "Lab test prescribed successfully." });
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(new { error = ex.Message });
-//            }
-//        }
+            return View(labResults);
+        }
+        //GET: Doctor/PatientDetails/
+        public IActionResult PatientDetails(int patientId)
+        {
+            var patient = _patientService.GetPatientsById(patientId);
+            if (patient == null)
+            {
+                return NotFound();
+            }
 
-//        // View Lab Test Results
-//        [HttpGet("lab-results/{patientId}")]
-//        public async Task<IActionResult> GetLabResults(int patientId)
-//        {
-//            var results = await _labTestService.GetPatientLabResultsAsync(patientId);
-//            return Ok(results);
-//        }
+            var viewModel = new PatientViewModel
+            {
+                Patient = patient,
+                Medicines = _doctorService.GetAllMedicines(),
+                LabTests = _doctorService.GetAllLabTests()
+            };
 
-//        // Refer to Another Doctor
-//        [HttpPost("refer-doctor")]
-//        public async Task<IActionResult> ReferDoctor([FromBody] ReferralRequest request)
-//        {
-//            try
-//            {
-//                await _doctorService.ReferPatientAsync(request);
-//                return Ok(new { message = "Patient referred successfully." });
-//            }
-//            catch (Exception ex)
-//            {
-//                return BadRequest(new { error = ex.Message });
-//            }
-//        }
-//    }
-//}
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SubmitConsultation(int patientId, string symptoms, string diagnosis, string notes)
+        {
+            var consultation = new Consultation
+            {
+                AppointmentId = patientId, // Assuming AppointmentId is the same as patientId for simplicity
+                Symptoms = symptoms,
+                Diagnosis = diagnosis,
+                Notes = notes
+            };
+            _patientService.AddConsultations(consultation);
+            return RedirectToAction("PatientDetails", new { patientId });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitPrescriptions(int patientId, List<MedicinePrescription> prescriptions)
+        {
+            foreach (var prescription in prescriptions)
+            {
+                prescription.AppointmentId = patientId; // Assuming AppointmentId is the same as patientId for simplicity
+                _patientService.AddPrescriptions(prescription);
+            }
+            return RedirectToAction("PatientDetails", new { patientId });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitLabTests(int patientId, List<LabTestPrescription> labTests)
+        {
+            foreach (var labTest in labTests)
+            {
+                labTest.AppointmentId = patientId; // Assuming AppointmentId is the same as patientId for simplicity
+                _patientService.AddLabTests(labTest);
+            }
+            return RedirectToAction("PatientDetails", new { patientId });
+        }
+
+        //To Check RoleId
+        private bool IsUserInRole(int requiredRoleId)
+        {
+            //Get the roleId from cookies
+            var roleId = Request.Cookies["RoleId"];
+
+            //If not match --> Redirect to Login
+
+            return roleId != null
+                && int.TryParse(roleId, out int userRoleId)
+                && userRoleId == requiredRoleId;
+        }
+    }
+}
+

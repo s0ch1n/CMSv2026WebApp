@@ -1,244 +1,324 @@
-﻿//using CMSv2026WebApp.Models;
-//using Microsoft.Data.SqlClient;
-//using System.Data;
+﻿using CMSv2026WebApp.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
-//namespace CMSv2026WebApp.Repositories
-//{
-//    public class DoctorRepository : IDoctorRepository
-//    {
-//        private readonly string _connectionString;
+namespace CMSv2026WebApp.Repositories
+{
+    public class DoctorRepository : IDoctorRepository
+    {
+        private readonly string _connectionString;
 
-//        public DoctorRepository(IConfiguration configuration)
-//        {
-//            _connectionString = configuration.GetConnectionString("DefaultConnection");
-//        }
+        public DoctorRepository(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("ConnStrMVC");
+        }
 
-//        public async Task<IEnumerable<Appointment>> GetTodaysAppointmentsAsync(int doctorId)
-//        {
-//            var appointments = new List<Appointment>();
+        public List<Appointment> GetTodaysAppointments(int doctorId)
+        {
+            var appointments = new List<Appointment>();
 
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                SELECT * FROM Appointments 
-//                WHERE DoctorId = @DoctorId AND AppointmentDate = CAST(GETDATE() AS DATE)";
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                SELECT * FROM Appointment 
+                WHERE DoctorId = @DoctorId AND AppointmentDate = CAST(GETDATE() AS DATE)";
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
-//                    await conn.OpenAsync();
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    conn.Open();
 
-//                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-//                    {
-//                        while (await reader.ReadAsync()) // ✅ Read Async
-//                        {
-//                            appointments.Add(new Appointment
-//                            {
-//                                AppointmentId = reader.GetInt32("AppointmentId"),
-//                                PatientId = reader.GetInt32("PatientId"),
-//                                DoctorId = reader.GetInt32("DoctorId"),
-//                                AppointmentDate = reader.GetDateTime("AppointmentDate"),
-//                                Status = reader.GetString("Status")
-//                            });
-//                        }
-//                    }
-//                }
-//            }
-//            return appointments;
-//        }
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            appointments.Add(new Appointment
+                            {
+                                AppointmentId = reader.GetInt32("AppointmentId"),
+                                PatientId = reader.GetInt32("PatientId"),
+                                DoctorId = reader.GetInt32("DoctorId"),
+                                AppointmentDate = reader.GetDateTime("AppointmentDate"),
+                                ConsultationStatus = reader.GetString("ConsultationStatus")
+                            });
+                        }
+                    }
+                }
+            }
+            return appointments;
+        }
 
-//        public async Task<IEnumerable<Patient>> SearchDoctorPatientsAsync(int doctorId, string searchQuery)
-//        {
-//            var patients = new List<Patient>();
+        public List<Patient> SearchDoctorPatients(int doctorId, string searchQuery)
+        {
+            var patients = new List<Patient>();
 
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                SELECT DISTINCT P.* FROM Patients P
-//                JOIN Appointments A ON P.PatientId = A.PatientId
-//                WHERE A.DoctorId = @DoctorId 
-//                AND (P.Name LIKE @SearchQuery OR P.Phone LIKE @SearchQuery)";
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                SELECT DISTINCT P.* FROM Patient P
+                JOIN Appointment A ON P.PatientId = A.PatientId
+                WHERE A.DoctorId = @DoctorId 
+                AND (P.PatientName LIKE @SearchQuery OR P.MobileNumber LIKE @SearchQuery)";
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
-//                    cmd.Parameters.AddWithValue("@SearchQuery", $"%{searchQuery}%");
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    cmd.Parameters.AddWithValue("@SearchQuery", $"%{searchQuery}%");
 
-//                    await conn.OpenAsync();
-//                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-//                    {
-//                        while (await reader.ReadAsync())
-//                        {
-//                            patients.Add(new Patient
-//                            {
-//                                PatientId = reader.GetInt32("PatientId"),
-//                                Name = reader.GetString("Name"),
-//                                Phone = reader.GetString("Phone"),
-//                                Address = reader.GetString("Address")
-//                            });
-//                        }
-//                    }
-//                }
-//            }
-//            return patients;
-//        }
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            patients.Add(new Patient
+                            {
+                                PatientId = reader.GetInt32("PatientId"),
+                                PatientName = reader.GetString("PatientName"),
+                                MobileNumber = reader.GetString("MobileNumber"),
+                                Address = reader.GetString("Address")
+                            });
+                        }
+                    }
+                }
+            }
+            return patients;
+        }
 
-//        public async Task AddConsultationAsync(Consultation consultation)
-//        {
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                INSERT INTO Consultations (AppointmentId, DoctorId, PatientId, Diagnosis, Notes, ConsultationDate) 
-//                VALUES (@AppointmentId, @DoctorId, @PatientId, @Diagnosis, @Notes, GETDATE())"; // ✅ Fixed column name
+        public void AddConsultation(Consultation consultation)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                INSERT INTO Consultation (AppointmentId, Diagnosis, Notes, CreatedDate) 
+                VALUES (@AppointmentId, @Diagnosis, @Notes, GETDATE())";
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@AppointmentId", consultation.AppointmentId);
-//                    cmd.Parameters.AddWithValue("@DoctorId", consultation.DoctorId);
-//                    cmd.Parameters.AddWithValue("@PatientId", consultation.PatientId);
-//                    cmd.Parameters.AddWithValue("@Diagnosis", consultation.Diagnosis);
-//                    cmd.Parameters.AddWithValue("@Notes", consultation.Notes ?? (object)DBNull.Value);
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", consultation.AppointmentId);
+                    cmd.Parameters.AddWithValue("@Diagnosis", consultation.Diagnosis);
+                    cmd.Parameters.AddWithValue("@Notes", consultation.Notes ?? (object)DBNull.Value);
 
-//                    await conn.OpenAsync();
-//                    await cmd.ExecuteNonQueryAsync();
-//                }
-//            }
-//        }
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
 
-//        public async Task AddPrescriptionAsync(MedicinePrescription prescription)
-//        {
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                INSERT INTO Prescriptions (ConsultationId, MedicineId, Dosage, Frequency, Duration, Instructions) 
-//                VALUES (@ConsultationId, @MedicineId, @Dosage, @Frequency, @Duration, @Instructions)";
+            // Update the consultation status to "Consulted"
+            UpdateConsultationStatus(consultation.AppointmentId, "Consulted");
+        }
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@ConsultationId", prescription.ConsultationId);
-//                    cmd.Parameters.AddWithValue("@MedicineId", prescription.MedicineId);
-//                    cmd.Parameters.AddWithValue("@Dosage", prescription.Dosage);
-//                    cmd.Parameters.AddWithValue("@Frequency", prescription.Frequency);
-//                    cmd.Parameters.AddWithValue("@Duration", prescription.Duration);
-//                    cmd.Parameters.AddWithValue("@Instructions", prescription.Instructions ?? (object)DBNull.Value);
+        public void UpdateConsultationStatus(int appointmentId, string status)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                UPDATE Appointment 
+                SET ConsultationStatus = @Status 
+                WHERE AppointmentId = @AppointmentId";
 
-//                    await conn.OpenAsync();
-//                    await cmd.ExecuteNonQueryAsync();
-//                }
-//            }
-//        }
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+                    cmd.Parameters.AddWithValue("@Status", status);
 
-//        public async Task<IEnumerable<Consultation>> GetPatientConsultationHistoryAsync(int patientId)
-//        {
-//            var consultations = new List<Consultation>();
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                SELECT * FROM Consultations WHERE PatientId = @PatientId ORDER BY ConsultationDate DESC";
+        public List<Medicine> GetAllMedicines()
+        {
+            var medicines = new List<Medicine>();
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@PatientId", patientId);
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM Medicine";
 
-//                    await conn.OpenAsync();
-//                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-//                    {
-//                        while (await reader.ReadAsync())
-//                        {
-//                            consultations.Add(new Consultation
-//                            {
-//                                ConsultationId = reader.GetInt32("ConsultationID"),
-//                                AppointmentId = reader.GetInt32("AppointmentID"),
-//                                DoctorId = reader.GetInt32("DoctorID"),
-//                                PatientId = reader.GetInt32("PatientID"),
-//                                Diagnosis = reader.GetString("Diagnosis"),
-//                                Notes = reader["Notes"] as string, // Handle null values
-//                                ConsultationDate = reader.GetDateTime("ConsultationDate")
-//                            });
-//                        }
-//                    }
-//                }
-//            }
-//            return consultations;
-//        }
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
 
-//        public async Task RequestLabTestAsync(LabTest labTest)
-//        {
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                INSERT INTO LabTests (PatientID, DoctorID, TestName, TestCost, TestDate, TestStatus) 
-//                VALUES (@PatientID, @DoctorID, @TestName, @TestCost, GETDATE(), 'Pending')";
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            medicines.Add(new Medicine
+                            {
+                                MedicineId = reader.GetInt32("MedicineId"),
+                                MedicineName = reader.GetString("MedicineName"),
+                                // Add other properties as needed
+                            });
+                        }
+                    }
+                }
+            }
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@PatientID", labTest.PatientId);
-//                    cmd.Parameters.AddWithValue("@DoctorID", labTest.DoctorId ?? (object)DBNull.Value);
-//                    cmd.Parameters.AddWithValue("@TestName", labTest.TestName);
-//                    cmd.Parameters.AddWithValue("@TestCost", labTest.TestCost);
+            return medicines;
+        }
 
-//                    await conn.OpenAsync();
-//                    await cmd.ExecuteNonQueryAsync();
-//                }
-//            }
-//        }
+        public List<LabTest> GetAllLabTests()
+        {
+            var labTests = new List<LabTest>();
 
-//        public async Task<IEnumerable<LabTestResult>> GetPatientLabResultsAsync(int patientId)
-//        {
-//            var labTests = new List<LabTest>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM LabTest";
 
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//                SELECT * FROM LabTests WHERE PatientID = @PatientID AND TestStatus = 'Completed'";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@PatientID", patientId);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            labTests.Add(new LabTest
+                            {
+                                LabTestId = reader.GetInt32("LabTestId"),
+                                TestName = reader.GetString("TestName"),
+                                // Add other properties as needed
+                            });
+                        }
+                    }
+                }
+            }
 
-//                    await conn.OpenAsync();
-//                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-//                    {
-//                        while (await reader.ReadAsync())
-//                        {
-//                            labTests.Add(new LabTest
-//                            {
-//                                LabTestId = reader.GetInt32("LabTestID"),
-//                                PatientId = reader.GetInt32("PatientID"),
-//                                DoctorId = reader["DoctorID"] as int?,
-//                                TestName = reader.GetString("TestName"),
-//                                TestCost = reader.GetDecimal("TestCost"),
-//                                TestStatus = reader.GetString("TestStatus"),
-//                                TestDate = reader.GetDateTime("TestDate"),
-//                                TestResult = reader["TestResult"] as string
-//                            });
-//                        }
-//                    }
-//                }
-//            }
-//            return labTests;
-//        }
+            return labTests;
+        }
 
-//        public async Task ReferPatientAsync(Referral referral)
-//        {
-//            using (SqlConnection conn = new SqlConnection(_connectionString))
-//            {
-//                string query = @"
-//        INSERT INTO Referrals (AppointmentID, ReferringDoctorID, ReferredDoctorID, ReferralDate) 
-//        VALUES (@AppointmentID, @ReferringDoctorID, @ReferredDoctorID, GETDATE())";
+        public void AddPrescription(MedicinePrescription prescription)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                INSERT INTO Prescription (AppointmentId, MedicineId, Dosage, Frequency, Duration, CreatedDate) 
+                VALUES (@AppointmentId, @MedicineId, @Dosage, @Frequency, @Duration, GETDATE())";
 
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {
-//                    cmd.Parameters.AddWithValue("@AppointmentID", referral.AppointmentId);
-//                    cmd.Parameters.AddWithValue("@ReferringDoctorID", referral.ReferringDoctorId);
-//                    cmd.Parameters.AddWithValue("@ReferredDoctorID", referral.ReferredDoctorId);
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", prescription.AppointmentId);
+                    cmd.Parameters.AddWithValue("@MedicineId", prescription.MedicineId);
+                    cmd.Parameters.AddWithValue("@Dosage", prescription.Dosage);
+                    cmd.Parameters.AddWithValue("@Frequency", prescription.Frequency);
+                    cmd.Parameters.AddWithValue("@Duration", prescription.Duration);
 
-//                    await conn.OpenAsync();
-//                    await cmd.ExecuteNonQueryAsync();
-//                }
-//            }
-//        }
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-//    }
-//}
+        public List<Consultation> GetPatientConsultationHistory(int patientId)
+        {
+            var consultations = new List<Consultation>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+        SELECT C.* FROM Consultation C
+        JOIN Appointment A ON C.AppointmentId = A.AppointmentId
+        WHERE A.PatientId = @PatientId
+        ORDER BY C.CreatedDate DESC";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@PatientId", patientId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            consultations.Add(new Consultation
+                            {
+                                ConsultationId = reader.GetInt32("ConsultationId"),
+                                AppointmentId = reader.GetInt32("AppointmentId"),
+                                Diagnosis = reader.GetString("Diagnosis"),
+                                Notes = reader["Notes"] as string,
+                                CreatedDate = reader.GetDateTime("CreatedDate")
+                            });
+                        }
+                    }
+                }
+            }
+            return consultations;
+        }
+
+        public void RequestLabTest(LabTestPrescription labTest)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                INSERT INTO LabTestPrescription (LabTestId, LabTestValue, CreatedDate, Remarks, AppointmentId) 
+                VALUES (@LabTestId, @LabTestValue, GETDATE(), @Remarks, @AppointmentId)";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@LabTestId", labTest.LabTestId);
+                    cmd.Parameters.AddWithValue("@LabTestValue", labTest.LabTestValue);
+                    cmd.Parameters.AddWithValue("@Remarks", labTest.Remarks ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AppointmentId", labTest.AppointmentId);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public List<LabTestResult> GetPatientLabResults(int appointmentId)
+        {
+            var labResults = new List<LabTestResult>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+        SELECT LTR.* FROM LabTestResult LTR
+        JOIN LabTestPrescription LTP ON LTR.LabTestPrescriptionId = LTP.LabTestPrescriptionId
+        WHERE LTP.AppointmentId = @AppointmentId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            labResults.Add(new LabTestResult
+                            {
+                                ReportID = reader.GetInt32("ReportID"),
+                                LabTestID = reader.GetInt32("LabTestID"),
+                                ReportFilePath = reader.GetString("ReportFilePath"),
+                                UploadDate = reader.GetDateTime("UploadDate")
+                            });
+                        }
+                    }
+                }
+            }
+            return labResults;
+        }
+
+
+
+        public void ReferPatient(Referral referral)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                INSERT INTO Referrals (AppointmentID, ReferringDoctorID, ReferredDoctorID, ReferralDate) 
+                VALUES (@AppointmentID, @ReferringDoctorID, @ReferredDoctorID, GETDATE())";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentID", referral.AppointmentID);
+                    cmd.Parameters.AddWithValue("@ReferringDoctorID", referral.ReferringDoctorID);
+                    cmd.Parameters.AddWithValue("@ReferredDoctorID", referral.ReferredDoctorID);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+    }
+}

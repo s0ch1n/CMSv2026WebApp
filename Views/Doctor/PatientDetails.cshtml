@@ -1,0 +1,234 @@
+﻿@model CMSv2026WebApp.ViewModel.PatientViewModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    ViewData["Title"] = "Patient Details";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Patient Information</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>Registration ID:</strong> @Model.Patient.RegistrationId</p>
+        <p><strong>Patient Name:</strong> @Model.Patient.PatientName</p>
+        <p><strong>Gender:</strong> @Model.Patient.Gender</p>
+        <p><strong>Age:</strong> @(Model.Patient.DateOfBirth != null ? (DateTime.Now.Year - Model.Patient.DateOfBirth.Year).ToString() : "N/A")</p>
+        <p><strong>Mobile Number:</strong> @Model.Patient.MobileNumber</p>
+        <p><strong>Address:</strong> @Model.Patient.Address</p>
+        <p><strong>Email:</strong> @Model.Patient.Email</p>
+        <p><strong>Blood Group:</strong> @Model.Patient.BloodGroup</p>
+    </div>
+    <div class="card-footer">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#consultationModal">Consultation</button>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#prescriptionsModal">Prescriptions</button>
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#labTestsModal">Lab Test Prescriptions</button>
+        <a href="@Url.Action("PatientHistory", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-warning">View Patient History</a>
+        <a href="@Url.Action("LabResults", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-success">View Lab Results</a>
+    </div>
+</div>
+
+<!-- Consultation Modal -->
+<div class="modal fade" id="consultationModal" tabindex="-1" aria-labelledby="consultationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="consultationModalLabel">Consultation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="symptomsText" rows="2" placeholder="Symptoms"></textarea>
+                <textarea class="form-control mt-2" id="diagnosisText" rows="2" placeholder="Diagnosis"></textarea>
+                <textarea class="form-control mt-2" id="notesText" rows="2" placeholder="Notes"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitConsultation()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prescriptions Modal -->
+<div class="modal fade" id="prescriptionsModal" tabindex="-1" aria-labelledby="prescriptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="prescriptionsModalLabel">Prescriptions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Medicine Name</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prescriptionsTableBody">
+                        @foreach (var medicine in Model.Medicines)
+                        {
+                            <tr>
+                                <td>@medicine.MedicineName</td>
+                                <td><input type="text" class="form-control" /></td>
+                                <td><input type="text" class="form-control" /></td>
+                                <td><input type="text" class="form-control" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-secondary" onclick="addPrescriptionRow()">Add Row</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitPrescriptions()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lab Tests Modal -->
+<div class="modal fade" id="labTestsModal" tabindex="-1" aria-labelledby="labTestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="labTestsModalLabel">Lab Test Prescriptions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Instructions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labTestsTableBody">
+                        @foreach (var labTest in Model.LabTests)
+                        {
+                            <tr>
+                                <td>@labTest.TestName</td>
+                                <td><input type="text" class="form-control" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-secondary" onclick="addLabTestRow()">Add Row</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitLabTests()">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
+        function submitConsultation() {
+            var symptoms = document.getElementById("symptomsText").value;
+            var diagnosis = document.getElementById("diagnosisText").value;
+            var notes = document.getElementById("notesText").value;
+            var patientId = @Model.Patient.PatientId;
+            // Post consultation to the server
+            fetch('@Url.Action("SubmitConsultation", "Doctor")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: JSON.stringify({ patientId, symptoms, diagnosis, notes })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Error submitting consultation');
+                }
+            });
+        }
+
+        function addPrescriptionRow() {
+            var tableBody = document.getElementById("prescriptionsTableBody");
+            var newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control" /></td>
+                <td><input type="text" class="form-control" /></td>
+                <td><input type="text" class="form-control" /></td>
+                <td><input type="text" class="form-control" /></td>
+            `;
+        }
+
+        function submitPrescriptions() {
+            var tableBody = document.getElementById("prescriptionsTableBody");
+            var prescriptions = [];
+            for (var i = 0; i < tableBody.rows.length; i++) {
+                var row = tableBody.rows[i];
+                var prescription = {
+                    medicineName: row.cells[0].querySelector("input").value,
+                    dosage: row.cells[1].querySelector("input").value,
+                    frequency: row.cells[2].querySelector("input").value,
+                    duration: row.cells[3].querySelector("input").value
+                };
+                prescriptions.push(prescription);
+            }
+            var patientId = @Model.Patient.PatientId;
+            // Post prescriptions to the server
+            fetch('@Url.Action("SubmitPrescriptions", "Doctor")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: JSON.stringify({ patientId, prescriptions })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Error submitting prescriptions');
+                }
+            });
+        }
+
+        function addLabTestRow() {
+            var tableBody = document.getElementById("labTestsTableBody");
+            var newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control" /></td>
+                <td><input type="text" class="form-control" /></td>
+            `;
+        }
+
+        function submitLabTests() {
+            var tableBody = document.getElementById("labTestsTableBody");
+            var labTests = [];
+            for (var i = 0; i < tableBody.rows.length; i++) {
+                var row = tableBody.rows[i];
+                var labTest = {
+                    testName: row.cells[0].querySelector("input").value,
+                    instructions: row.cells[1].querySelector("input").value
+                };
+                labTests.push(labTest);
+            }
+            var patientId = @Model.Patient.PatientId;
+            // Post lab tests to the server
+            fetch('@Url.Action("SubmitLabTests", "Doctor")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': antiForgeryToken
+                },
+                body: JSON.stringify({ patientId, labTests })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Error submitting lab tests');
+                }
+            });
+        }
+    </script>
+}
+

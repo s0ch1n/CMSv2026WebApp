@@ -23,6 +23,18 @@ namespace CMSv2026WebApp
 
             builder.Services.AddScoped<IUserService, UserService>();
 
+            builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+
+            builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
+            builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+
+            builder.Services.AddScoped<IPatientService, PatientService>();
+
+            builder.Services.AddScoped<IDoctorService, DoctorService>();
+
+            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
 
             var app = builder.Build();
 

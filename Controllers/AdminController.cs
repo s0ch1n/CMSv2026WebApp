@@ -49,7 +49,7 @@ namespace CMSv2026WebApp.Controllers
         }
 
         //POST: /Admin/RegisterUser
-        public IActionResult RegisterNewUser(UserRegistrationViewModel viewModel)
+        public IActionResult RegisterNewStaff(UserRegistrationViewModel viewModel)
         {
             if (!IsUserInRole(1))
             {

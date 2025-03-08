@@ -4,10 +4,16 @@ namespace CMSv2026WebApp.Services
 {
     public interface IDoctorService
     {
-        Task<IEnumerable<Appointment>> GetTodaysAppointmentsAsync(int doctorId);
-        Task<IEnumerable<Patient>> SearchDoctorPatientsAsync(int doctorId, string searchQuery);
-        Task<IEnumerable<Consultation>> GetPatientConsultationHistoryAsync(int patientId);
-        Task AddConsultationAsync(Consultation consultation);
-        Task AddPrescriptionAsync(MedicinePrescription prescription);
+        List<Appointment> GetTodaysAppointments(int doctorId);
+        List<Patient> SearchDoctorPatients(int doctorId, string searchQuery);
+        List<Consultation> GetPatientConsultationHistory(int patientId);
+        void AddConsultations(Consultation consultation);
+        void UpdateConsultationStatus(int appointmentId, string status);
+        void AddPrescriptions(MedicinePrescription prescription);
+        void RequestLabTests(LabTestPrescription labTest);
+        List<LabTestResult> GetThePatientLabResults(int appointmentId);
+        void ReferPatients(Referral referral);
+        List<Medicine> GetAllMedicines();
+        List<LabTest> GetAllLabTests();
     }
 }
