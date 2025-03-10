@@ -11,6 +11,8 @@ namespace CMSv2026WebApp.Models
         [Required]
         public DateTime AppointmentDate { get; set; }
 
+        public TimeSpan AppointmentTime { get; set; } 
+
         [Required]
         public int TokenNumber { get; set; }
 

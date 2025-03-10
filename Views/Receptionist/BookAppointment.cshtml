@@ -1,0 +1,145 @@
+﻿@model CMSv2026WebApp.Models.Patient
+
+@{
+    ViewData["Title"] = "Book Appointment";
+}
+
+<h1>Book Appointment</h1>
+
+@if (Model == null)
+{
+    <div class="alert alert-danger">
+        Patient not found.
+    </div>
+}
+else
+{
+    <div id="errorMessage" class="alert alert-danger mt-3" style="display:none;"></div>
+
+    <form asp-action="BookAppointment" method="post">
+        <input type="hidden" asp-for="PatientId" />
+
+        <div class="form-group">
+            <label>Patient Name</label>
+            <input type="text" class="form-control" value="@Model.PatientName" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Select Department</label>
+            <select id="specialization" class="form-control" onchange="loadDoctors()">
+                <option value="">-- Select Department --</option>
+                @if (ViewBag.Specializations != null)
+                {
+                    foreach (var specialization in ViewBag.Specializations)
+                    {
+                        <option value="@specialization.SpecializationId">@specialization.SpecializationName</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Select Doctor</label>
+            <select id="doctor" name="doctorId" class="form-control" disabled>
+                <option value="">-- Select Doctor --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Appointment Date</label>
+            <select id="appointmentDate" name="appointmentDate" class="form-control" required onchange="loadTimeSlots()">
+                <option value="">-- Select Date --</option>
+                <option value="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dd MMM yyyy") (Today)</option>
+                <option value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(1).ToString("dd MMM yyyy") (Tomorrow)</option>
+                <option value="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(2).ToString("dd MMM yyyy") (Day After Tomorrow)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Available Time Slots</label>
+            <select id="timeSlot" name="appointmentTime" class="form-control" required disabled>
+                <option value="">-- Select Time Slot --</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Book Appointment</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+}
+
+@section Scripts {
+    <script>
+        function loadDoctors() {
+            const specializationId = document.getElementById("specialization").value;
+            const doctorDropdown = document.getElementById("doctor");
+
+            if (specializationId) {
+                fetch(/Receptionist/GetAvailableDoctors?specializationId=${specializationId})
+                    .then(response => response.json())
+                    .then(data => {
+                        doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                        data.forEach(doctor => {
+                            doctorDropdown.innerHTML += <option value="${doctor.doctorId}">${doctor.name}</option>;
+                        });
+                        doctorDropdown.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error("Error fetching doctors:", error);
+                        doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                        doctorDropdown.disabled = true;
+                    });
+            } else {
+                doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                doctorDropdown.disabled = true;
+            }
+        }
+
+        function loadTimeSlots() {
+            const doctorId = document.getElementById("doctor").value;
+            const appointmentDate = document.getElementById("appointmentDate").value;
+            const timeSlotDropdown = document.getElementById("timeSlot");
+
+            if (doctorId && appointmentDate) {
+                // Check for existing appointments
+                checkExistingAppointment(doctorId, appointmentDate);
+
+                fetch(/Receptionist/GetAvailableTimeSlots?doctorId=${doctorId}&appointmentDate=${appointmentDate})
+                    .then(response => response.json())
+                    .then(data => {
+                        timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                        data.forEach(slot => {
+                            timeSlotDropdown.innerHTML += <option value="${slot.time}">${slot.time}</option>;
+                        });
+                        timeSlotDropdown.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error("Error fetching time slots:", error);
+                        timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                        timeSlotDropdown.disabled = true;
+                    });
+            } else {
+                timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                timeSlotDropdown.disabled = true;
+            }
+        }
+
+        function checkExistingAppointment(doctorId, appointmentDate) {
+            const patientId = document.querySelector("input[name='PatientId']").value; // Get the patient ID from the hidden input
+            const errorMessageDiv = document.getElementById("errorMessage");
+
+            fetch(/Receptionist/CheckExistingAppointment?patientId=${patientId}&doctorId=${doctorId}&appointmentDate=${appointmentDate})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hasExistingAppointment) {
+                        errorMessageDiv.textContent = "You already have an appointment with this doctor on the selected date please select other date.";
+                        errorMessageDiv.style.display = "block";
+                    } else {
+                        errorMessageDiv.style.display = "none";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error checking existing appointment:", error);
+                });
+        }
+    </script>
+}

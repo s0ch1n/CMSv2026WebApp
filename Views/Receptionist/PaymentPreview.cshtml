@@ -1,0 +1,77 @@
+﻿@model CMSv2026WebApp.ViewModel.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Payment Preview";
+}
+
+<h1>Payment Preview</h1>
+
+@if (Model == null)
+{
+    <div class="alert alert-danger">
+        Appointment details not found.
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Appointment Details</h5>
+            <p class="card-text">
+
+                <strong>Appointment Date:</strong> @Model.AppointmentDate.ToShortDateString() <br />
+                <strong>Appointment Time:</strong> @Model.AppointmentTime.ToString(@"hh\:mm") <br /> <!-- Fix here -->
+                <strong>Patient Name:</strong> @Model.PatientName <br />
+                <strong>Mobile Number:</strong> @Model.MobileNumber <br />
+                <strong>Registration ID:</strong> @Model.RegistrationId <br />
+                <strong>Blood Group:</strong> @Model.BloodGroup <br />
+                <strong>Doctor Name:</strong> @Model.DoctorName <br />
+                <strong>Consultation Fee:</strong> @Model.ConsultationFee.ToString("C") <br />
+            </p>
+        </div>
+    </div>
+
+    <form id="confirmPaymentForm" method="post">
+        <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+        <button type="button" class="btn btn-success mt-3" id="confirmButton">Confirm Payment</button>
+        <a asp-action="Index" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+
+    <div id="successMessage" class="alert alert-success mt-3" style="display:none;"></div>
+    <div id="errorMessage" class="alert alert-danger mt-3" style="display:none;"></div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#confirmButton").click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Receptionist/ConfirmPayment",
+                    data: $("#confirmPaymentForm").serialize(),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest" // Indicate this is an AJAX request
+                    },
+                    success: function (data) {
+                        if (data.tokenNumber) {
+                            $("#successMessage").text("Appointment booked successfully with Token Number: " + data.tokenNumber);
+                            $("#successMessage").show();
+                            $("#confirmPaymentForm").hide(); // Optional: hide the form after success
+                       // Add this line to redirect after a short delay
+                            setTimeout(function () {
+                                window.location.href = "/Receptionist/Index";
+                            }, 2000); // Redirect after 2 seconds
+                        } else if (data.error) {
+                            $("#errorMessage").text(data.error);
+                            $("#errorMessage").show();
+                        }
+                    },
+                    error: function () {
+                        $("#errorMessage").text("Error confirming payment. Please try again.");
+                        $("#errorMessage").show();
+                    }
+                });
+            });
+        });
+    </script>
+}

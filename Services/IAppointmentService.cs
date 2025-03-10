@@ -1,13 +1,22 @@
 ﻿using CMSv2026WebApp.Models;
+using CMSv2026WebApp.ViewModel;
+using System.Collections.Generic;
 
 namespace CMSv2026WebApp.Services
 {
     public interface IAppointmentService
     {
+        AppointmentViewModel BookAppointment(int patientId, int doctorId, DateTime appointmentDate, int tokenNumber);
+        ConsultationBill GenerateConsultationBill(int appointmentId);
+        List<Patient> SearchPatients(string searchTerm, string searchBy);
+        List<DoctorAvailability> GetAvailableDoctors(int specializationId, DateTime appointmentDate);
+        List<Specialization> GetSpecializations();
+        AppointmentViewModel BookAppointment(int patientId, int doctorId, DateTime appointmentDate, TimeSpan appointmentTime);
+        List<TimeSpan> GetAvailableTimeSlots(int doctorId, DateTime appointmentDate);
+        PaymentViewModel ConfirmPayment(int appointmentId);
+        Doctor GetDoctorById(int doctorId);
+        bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate);
         List<Appointment> GetTodaysAppointments();
-        //Task<IEnumerable<Doctor>> GetAvailableDoctorsByDepartmentAsync(int departmentId);
-        //Task<bool> CheckDoctorAvailabilityAsync(int doctorId, DateTime selectedDate);
-        //Task<int> BookAppointmentAsync(int patientId, int doctorId, DateTime selectedDate, string timeSlot);
-        //Task<int> GenerateConsultationBillAsync(int patientId, int doctorId, DateTime appointmentDate, decimal fee);
+
     }
 }

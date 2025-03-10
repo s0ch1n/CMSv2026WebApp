@@ -1,18 +1,22 @@
 ﻿using CMSv2026WebApp.Models;
-using Microsoft.Data.SqlClient;
+using CMSv2026WebApp.ViewModel;
+using System.Collections.Generic;
 
 namespace CMSv2026WebApp.Repositories
 {
     public interface IAppointmentRepository
     {
+        List<Staff> GetAvailableDoctors();
+        AppointmentViewModel BookAppointment(int patientId, int doctorId, DateTime appointmentDate, TimeSpan appointmentTime);
+        ConsultationBill GenerateConsultationBill(int appointmentId);
+        PaymentViewModel ConfirmPayment(int appointmentId);
+        List<Patient> SearchPatients(string searchTerm, string searchBy);
+        List<DoctorAvailability> GetAvailableDoctors(int specializationId, DateTime appointmentDate);
+        List<Specialization> GetSpecializations();
+        Doctor GetDoctorById(int doctorId);
+        bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate);
+        List<TimeSpan> GetAvailableTimeSlots(int doctorId, DateTime appointmentDate);
         List<Appointment> GetTodaysAppointments();
-        //Task<Dictionary<int, string>> GetDoctorDepartmentsAsync();
-        //Task<List<Doctor>> GetAvailableDoctorsAsync(int departmentID, DateTime appointmentDate);
-        //Task<Dictionary<int, TimeSpan>> GetAvailableTimeSlotsAsync(int doctorId, DateTime appointmentDate, bool isMorning);
-        //Task<Doctor> GetDoctorByIDAsync(int doctorID);
-        //Task<int> GetDoctorIdFromUserAsync(int userId, SqlConnection conn, SqlTransaction transaction);
-        //Task<bool> ProcessPaymentAsync(int patientID, int doctorID, decimal consultationFee, DateTime appointmentDate);
-        //Task<int> GetNextTokenAsync(int doctorID, DateTime date, SqlConnection conn, SqlTransaction transaction);
-
     }
+
 }

@@ -4,9 +4,8 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-
-
+using CMSv2026WebApp.ViewModel;
+using System.Data;
 
 namespace CMSv2026WebApp.Repositories
 {
@@ -19,325 +18,374 @@ namespace CMSv2026WebApp.Repositories
             _connectionString = configuration.GetConnectionString("ConnStrMVC");
         }
 
-        public List<Appointment> GetTodaysAppointments()
-        {
-            var today = DateTime.Today;
-            var query = @"
-        SELECT a.*, p.*
-        FROM Appointment a
-        JOIN Patient p ON a.PatientId = p.PatientId
-        WHERE CAST(a.AppointmentDate AS DATE) = @Today";
 
-            using (var connection = new SqlConnection(_connectionString))
+        public AppointmentViewModel BookAppointment(int patientId, int doctorId, DateTime appointmentDate, TimeSpan appointmentTime)
+        {
+            using (var conn = new SqlConnection(_connectionString))
             {
-                connection.Open();
-                var appointments = connection.Query<Appointment, Patient, Appointment>(
-                    query,
-                    (appointment, patient) =>
+                using (var cmd = new SqlCommand("sp_BookAppointment", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // Combine date and time into a single DateTime
+                    DateTime combinedDateTime = appointmentDate.Date + appointmentTime;
+
+                    // Add input parameters
+                    cmd.Parameters.AddWithValue("@PatientId", patientId);
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    cmd.Parameters.AddWithValue("@AppointmentDate", combinedDateTime);
+                    cmd.Parameters.AddWithValue("@AppointmentTime", appointmentTime);
+
+                    // Add output parameter for TokenNumber
+                    var tokenNumberParam = new SqlParameter("@TokenNumber", SqlDbType.Int)
                     {
-                        appointment.Patient = patient;
-                        return appointment;
-                    },
-                    new { Today = today },
-                    splitOn: "PatientId"
-                ).ToList();
-                return appointments;
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(tokenNumberParam);
+
+                    conn.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        // Read first result set (TokenNumber)
+                        if (reader.Read())
+                        {
+                            int tokenNumber = reader.GetInt32(reader.GetOrdinal("TokenNumber"));
+                        }
+
+                        // Move to the second result set
+                        if (reader.NextResult() && reader.Read())
+                        {
+                            return new AppointmentViewModel
+                            {
+                                AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
+                                AppointmentDate = reader.GetDateTime(reader.GetOrdinal("AppointmentDate")),
+                                AppointmentTime = reader.GetTimeSpan(reader.GetOrdinal("AppointmentTime")),  // Ensure this is correctly retrieved
+                                TokenNumber = reader.GetInt32(reader.GetOrdinal("TokenNumber")),
+                                PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                                IsActive = true
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public PaymentViewModel ConfirmPayment(int appointmentId)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    using (var cmd = new SqlCommand("sp_ConfirmPayment", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+
+                        conn.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new PaymentViewModel
+                                {
+                                    AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
+                                    TokenNumber = reader.GetInt32(reader.GetOrdinal("TokenNumber")),
+                                    AppointmentDate = reader.GetDateTime(reader.GetOrdinal("AppointmentDate")),
+                                    PatientName = reader.GetString(reader.GetOrdinal("PatientName")),
+                                    MobileNumber = reader.GetString(reader.GetOrdinal("MobileNumber")),
+                                    RegistrationId = reader.GetString(reader.GetOrdinal("RegistrationId")),
+                                    BloodGroup = reader.GetString(reader.GetOrdinal("BloodGroup")),
+                                    DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                    SpecializationName = reader.GetString(reader.GetOrdinal("SpecializationName")),
+                                    ConsultationFee = reader.GetDecimal(reader.GetOrdinal("ConsultationFee")),
+                                    BillDate = reader.GetDateTime(reader.GetOrdinal("BillDate")),
+                                    PaymentStatus = reader.GetString(reader.GetOrdinal("PaymentStatus"))
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in ConfirmPayment: {ex.Message}");
+                throw; // Re-throw the exception to propagate it
+            }
+
+            return null;
+        }
+
+        public List<DoctorAvailability> GetAvailableDoctors(int specializationId, DateTime appointmentDate)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_GetAvailableDoctors", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@SpecializationId", specializationId);
+                    cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var doctors = new List<DoctorAvailability>();
+                        while (reader.Read())
+                        {
+                            doctors.Add(new DoctorAvailability
+                            {
+                                DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                Name = reader.GetString(reader.GetOrdinal("DoctorName")), // Ensure this matches the column name
+                                ConsultationFee = reader.GetDecimal(reader.GetOrdinal("ConsultationFee"))
+                            });
+                        }
+                        return doctors;
+                    }
+                }
             }
         }
+
+        public List<Specialization> GetSpecializations()
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_GetSpecializations", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var specializations = new List<Specialization>();
+                        while (reader.Read())
+                        {
+                            specializations.Add(new Specialization
+                            {
+                                SpecializationId = reader.GetInt32(reader.GetOrdinal("SpecializationId")),
+                                SpecializationName = reader.GetString(reader.GetOrdinal("SpecializationName"))
+                            });
+                        }
+                        return specializations;
+                    }
+                }
+            }
+        }
+
+        public ConsultationBill GenerateConsultationBill(int appointmentId)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    using (var cmd = new SqlCommand("sp_GenerateConsultationBill", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+
+                        conn.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new ConsultationBill
+                                {
+                                    BillId = reader.GetInt32(reader.GetOrdinal("BillId")),
+                                    AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
+                                    ConsultationFee = reader.GetDecimal(reader.GetOrdinal("ConsultationFee")),
+                                    BillDate = reader.GetDateTime(reader.GetOrdinal("BillDate")),
+                                    PaymentStatus = reader.GetString(reader.GetOrdinal("PaymentStatus"))
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in GenerateConsultationBill: {ex.Message}");
+                throw; // Re-throw the exception to propagate it
+            }
+
+            return null;
+        }
+
+        public Doctor GetDoctorById(int doctorId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_GetDoctorById", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new Doctor
+                            {
+                                DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                Name = reader.GetString(reader.GetOrdinal("DoctorName")),
+                                SpecializationId = reader.GetInt32(reader.GetOrdinal("SpecializationId")),
+                                ConsultationFee = reader.GetDecimal(reader.GetOrdinal("ConsultationFee")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_HasExistingAppointment", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@PatientId", patientId);
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate.Date); // Use only the date part
+
+                    conn.Open();
+                    var result = cmd.ExecuteScalar();
+
+                    // If the result is 1, an existing appointment exists
+                    return result != null && (int)result == 1;
+                }
+            }
+        }
+
+        public List<Staff> GetAvailableDoctors()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<TimeSpan> GetAvailableTimeSlots(int doctorId, DateTime appointmentDate)
+        {
+            List<TimeSpan> availableSlots = new();
+
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_GetAvailableTimeSlots", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate.Date);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Read the TimeSpan directly from the database
+                            var timeSlot = reader.GetTimeSpan(0);
+                            availableSlots.Add(timeSlot);
+                        }
+                    }
+                }
+            }
+
+            return availableSlots;
+        }
+
+        public List<Patient> SearchPatients(string searchTerm, string searchBy)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_SearchPatient1", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@SearchTerm", searchTerm);
+                    cmd.Parameters.AddWithValue("@SearchBy", searchBy);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var patients = new List<Patient>();
+                        while (reader.Read())
+                        {
+                            patients.Add(new Patient
+                            {
+                                PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                PatientName = reader.IsDBNull(reader.GetOrdinal("PatientName")) ? null : reader.GetString(reader.GetOrdinal("PatientName")),
+                                MobileNumber = reader.IsDBNull(reader.GetOrdinal("MobileNumber")) ? null : reader.GetString(reader.GetOrdinal("MobileNumber")),
+                                RegistrationId = reader.IsDBNull(reader.GetOrdinal("RegistrationId")) ? null : reader.GetString(reader.GetOrdinal("RegistrationId")),
+                                DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                                Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
+                                BloodGroup = reader.IsDBNull(reader.GetOrdinal("BloodGroup")) ? null : reader.GetString(reader.GetOrdinal("BloodGroup")),
+                                Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email"))
+                            });
+                        }
+                        return patients;
+                    }
+                }
+            }
+        }
+
+
+        public List<Appointment> GetTodaysAppointments()
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                using (var cmd = new SqlCommand("sp_GetTodaysAppointments", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Today", DateTime.Today);
+
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var appointments = new List<Appointment>();
+                        while (reader.Read())
+                        {
+                            var appointment = new Appointment
+                            {
+                                AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
+                                AppointmentDate = reader.GetDateTime(reader.GetOrdinal("AppointmentDate")),
+                                Patient = new Patient
+                                {
+                                    PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                    PatientName = reader.IsDBNull(reader.GetOrdinal("PatientName")) ? null : reader.GetString(reader.GetOrdinal("PatientName")),
+                                    MobileNumber = reader.IsDBNull(reader.GetOrdinal("MobileNumber")) ? null : reader.GetString(reader.GetOrdinal("MobileNumber")),
+                                    RegistrationId = reader.IsDBNull(reader.GetOrdinal("RegistrationId")) ? null : reader.GetString(reader.GetOrdinal("RegistrationId")),
+                                    DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                                    Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
+                                    BloodGroup = reader.IsDBNull(reader.GetOrdinal("BloodGroup")) ? null : reader.GetString(reader.GetOrdinal("BloodGroup")),
+                                    Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email"))
+                                },
+                                Doctor = new Doctor
+                                {
+                                    DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                    Name = reader.IsDBNull(reader.GetOrdinal("DoctorName")) ? null : reader.GetString(reader.GetOrdinal("DoctorName")),
+                                    SpecializationId = reader.GetInt32(reader.GetOrdinal("SpecializationId")),
+                                    ConsultationFee = reader.GetDecimal(reader.GetOrdinal("ConsultationFee")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                                },
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                            };
+
+                            // Check for null value in AppointmentTime
+                            if (!reader.IsDBNull(reader.GetOrdinal("AppointmentTime")))
+                            {
+                                appointment.AppointmentTime = reader.GetTimeSpan(reader.GetOrdinal("AppointmentTime"));
+                            }
+
+                            appointments.Add(appointment);
+                        }
+                        return appointments;
+                    }
+                }
+            }
+        }
+
+
     }
-
-
-        //// Get doctor departments
-        //public async Task<Dictionary<int, string>> GetDoctorDepartmentsAsync()
-        //{
-        //    var departments = new Dictionary<int, string>();
-
-        //    using (SqlConnection conn = new SqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        string query = "SELECT DeptId, DeptName FROM Departments";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //        {
-        //            while (await reader.ReadAsync())
-        //            {
-        //                departments.Add(reader.GetInt32(0), reader.GetString(1));
-        //            }
-        //        }
-        //    }
-        //    return departments;
-        //}
-
-        //// Get available doctors in a department
-        //public async Task<List<Doctor>> GetAvailableDoctorsAsync(int departmentID, DateTime appointmentDate)
-        //{
-        //    var doctors = new List<Doctor>();
-
-        //    using (SqlConnection conn = new SqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        string query = @"
-        //        SELECT d.DoctorID, d.DName, d.DeptId, 
-        //               (SELECT COUNT(*) FROM Appointments a 
-        //                WHERE a.DocId = d.DoctorID 
-        //                AND a.AppoDate = @AppointmentDate) AS PatientCount
-        //        FROM Doctors d 
-        //        WHERE d.DeptId = @DepartmentID AND d.IsAvailabile = 1";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("@DepartmentID", departmentID);
-        //            cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate.Date);
-
-        //            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //            {
-        //                while (await reader.ReadAsync())
-        //                {
-        //                    int patientCount = reader.GetInt32(3);
-        //                    if (patientCount < 30) // Enforce 30 appointments limit
-        //                    {
-        //                        doctors.Add(new Doctor
-        //                        {
-        //                            DoctorID = reader.GetInt32(0),
-        //                            Name = reader.GetString(1),
-        //                            DepartmentID = reader.GetInt32(2)
-        //                        });
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    return doctors;
-        //}
-
-        //// Get available time slots
-        //public async Task<Dictionary<int, TimeSpan>> GetAvailableTimeSlotsAsync(int doctorId, DateTime appointmentDate, bool isMorning)
-        //{
-        //    Console.WriteLine("Checking slots for Doctor ID: " + doctorId);
-
-        //    // Define Morning & Evening Slots
-        //    TimeSpan[] morningSlots = {
-        //new TimeSpan(9, 0, 0), new TimeSpan(9, 15, 0), new TimeSpan(9, 30, 0),
-        //new TimeSpan(9, 45, 0), new TimeSpan(10, 0, 0), new TimeSpan(10, 15, 0),
-        //new TimeSpan(10, 30, 0), new TimeSpan(10, 45, 0), new TimeSpan(11, 00, 0),
-        //new TimeSpan(11, 15, 0), new TimeSpan(11, 30, 0), new TimeSpan(11, 45, 0),
-        //new TimeSpan(12, 0, 0), new TimeSpan(12, 15, 0), new TimeSpan(12, 30, 0),
-        //new TimeSpan(12, 45, 0), new TimeSpan(13, 0, 0)
-        //                               };
-
-        //    TimeSpan[] eveningSlots = {
-        //new TimeSpan(14, 0, 0), new TimeSpan(14, 15, 0), new TimeSpan(14, 30, 0),
-        //new TimeSpan(14, 45, 0), new TimeSpan(15, 0, 0), new TimeSpan(15, 15, 0),
-        //new TimeSpan(15, 30, 0), new TimeSpan(15, 45, 0), new TimeSpan(16, 00, 0),
-        //new TimeSpan(16, 15, 0), new TimeSpan(16, 30, 0), new TimeSpan(16, 45, 0),
-        //new TimeSpan(17, 0, 0)
-        //                             };
-
-        //    TimeSpan[] selectedSlots = isMorning ? morningSlots : eveningSlots;
-        //    HashSet<TimeSpan> bookedSlots = new HashSet<TimeSpan>();
-        //    var availableSlots = new Dictionary<int, TimeSpan>();
-
-        //    // Database Query to Fetch Already Booked Slots
-        //    using (SqlConnection conn = new SqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        string query = "SELECT TimeSlot FROM Appointments WHERE DocId = @DoctorID AND AppoDate = @Date";
-
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("@DoctorID", doctorId);
-        //            cmd.Parameters.AddWithValue("@Date", appointmentDate.Date);
-
-        //            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //            {
-        //                while (await reader.ReadAsync())
-        //                {
-        //                    string timeString = reader.GetString(0);
-        //                    if (TimeSpan.TryParse(timeString, out TimeSpan bookedTime))
-        //                    {
-        //                        bookedSlots.Add(bookedTime);
-        //                    }
-        //                    else
-        //                    {
-        //                        Console.WriteLine($"Invalid time format in database: {timeString}");
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    // Filter available slots based on the current time if it's today
-        //    TimeSpan currentTime = DateTime.Now.TimeOfDay;
-        //    int index = 1;
-
-        //    foreach (var slot in selectedSlots)
-        //    {
-        //        if (!bookedSlots.Contains(slot) && (appointmentDate.Date > DateTime.Now.Date || slot > currentTime))
-        //        {
-        //            availableSlots.Add(index++, slot);
-        //        }
-        //    }
-
-        //    return availableSlots;
-        //}
-
-
-        //public async Task<Doctor> GetDoctorByIDAsync(int doctorID)
-        //{
-        //    string query = @"
-        //SELECT DoctorId, DName, DeptId, ConsultationFee 
-        //FROM Doctors 
-        //WHERE DoctorId = @DoctorID";
-
-        //    using (SqlConnection conn = new SqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("@DoctorID", doctorID);
-
-        //            using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //            {
-        //                if (await reader.ReadAsync())
-        //                {
-
-        //                    return new Doctor
-        //                    {
-        //                        DoctorId = reader.GetInt32(0),
-        //                        Name = reader.GetString(1),
-        //                        DepartmentId = reader.GetInt32(2),
-        //                        ConsultationFee = Convert.ToDecimal(reader[3])
-        //                    };
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return null; // Return null if no doctor is found
-        //}
-
-        //public async Task<int> BookAppointmentAsync(Appointment appointment, bool isMorningShift)
-        //{
-        //    try
-        //    {
-        //        using (SqlConnection conn = new SqlConnection(_connectionString))
-        //        {
-        //            await conn.OpenAsync();
-        //            using (SqlTransaction transaction = conn.BeginTransaction())
-        //            {
-        //                try
-        //                {
-        //                    var availableSlots = await GetAvailableTimeSlotsAsync(appointment.DoctorID, appointment.AppoDate, isMorningShift);
-
-        //                    if (availableSlots == null || !availableSlots.Any())
-        //                    {
-        //                        Console.WriteLine("No available slots.");
-        //                        return -1;
-        //                    }
-
-        //                    //int slotIndex = ConsoleHelper.SelectOption("Available Time Slots:", availableSlots.Values.Select(ts => ts.ToString(@"hh\:mm")).ToList());
-        //                    var slotList = availableSlots.Values.Select(ts => ts.ToString(@"hh\:mm")).ToList();
-
-        //                    Console.ReadKey();
-        //                    Console.Clear();
-        //                    int slotIndex = ConsoleHelper.SelectOption("Available Time Slots", slotList);
-        //                    if (slotIndex == -1) return -1; // User didn't select a valid option
-
-        //                    TimeSpan selectedTimeSlot = availableSlots.ElementAt(slotIndex).Value;
-
-        //                    int tokenNumber = await GetNextTokenAsync(appointment.DoctorID, appointment.AppoDate, conn, transaction);
-
-        //                    string query = @"
-        //                    INSERT INTO Appointments (PatId, DocId, AppoDate, TokenId, TimeSlot) 
-        //                    VALUES (@PatientID, @DoctorID, @AppointmentDate, @TokenNumber, @TimeSlot)";
-
-        //                    using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
-        //                    {
-        //                        cmd.Parameters.AddWithValue("@PatientID", appointment.PatientID);
-        //                        cmd.Parameters.AddWithValue("@DoctorID", appointment.DoctorID);
-        //                        cmd.Parameters.AddWithValue("@AppointmentDate", appointment.AppoDate.Date);
-        //                        cmd.Parameters.AddWithValue("@TokenNumber", tokenNumber);
-        //                        cmd.Parameters.AddWithValue("@TimeSlot", selectedTimeSlot.ToString(@"hh\:mm"));
-
-        //                        await cmd.ExecuteNonQueryAsync();
-        //                    }
-
-        //                    await transaction.CommitAsync();
-        //                    return tokenNumber;
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    await transaction.RollbackAsync();
-        //                    Console.WriteLine($"Error booking appointment: {ex.Message}");
-        //                    return -1;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Database connection error: {ex.Message}");
-        //        return -1;
-        //    }
-        //}
-
-
-
-
-        //private async Task<int> GetDoctorIdFromUserAsync(int userId, SqlConnection conn, SqlTransaction transaction)
-        //{
-        //    string query = "SELECT DoctorId FROM Doctors WHERE UsId = @UserID";
-
-        //    using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
-        //    {
-        //        cmd.Parameters.AddWithValue("@UserID", userId);
-        //        object result = await cmd.ExecuteScalarAsync();
-
-        //        return (result != null && int.TryParse(result.ToString(), out int doctorId)) ? doctorId : -1;
-        //    }
-        //}
-
-
-
-        //public async Task<bool> ProcessPaymentAsync(int patientID, int doctorID, decimal consultationFee, DateTime appointmentDate)
-        //{
-        //    string query = @"
-        //INSERT INTO Bills (PatientId, DoctorId, AppointmentDate, Amount, PaymentStatus, PaymentDate)
-        //VALUES (@PatientID, @DoctorID, @AppointmentDate, @Amount, @PaymentStatus, @PaymentDate)";
-
-        //    using (SqlConnection conn = new SqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("@PatientID", patientID);
-        //            cmd.Parameters.AddWithValue("@DoctorID", doctorID);
-        //            cmd.Parameters.AddWithValue("@AppointmentDate", appointmentDate);
-        //            cmd.Parameters.AddWithValue("@Amount", consultationFee);
-        //            cmd.Parameters.AddWithValue("@PaymentStatus", "Paid"); // Assuming immediate payment
-        //            cmd.Parameters.AddWithValue("@PaymentDate", DateTime.Now);
-
-        //            int rowsAffected = await cmd.ExecuteNonQueryAsync();
-        //            return rowsAffected > 0;
-        //        }
-        //    }
-        //}
-
-
-        //// Get the next available token
-        //private async Task<int> GetNextTokenAsync(int doctorID, DateTime date, SqlConnection conn, SqlTransaction transaction)
-        //{
-        //    string query = "SELECT ISNULL(MAX(TokenId), 0) + 1 FROM Appointments WHERE DocId = @DoctorID AND AppoDate = @Date";
-
-        //    using (SqlCommand cmd = new SqlCommand(query, conn, transaction))
-        //    {
-        //        cmd.Parameters.AddWithValue("@DoctorID", doctorID);
-        //        cmd.Parameters.AddWithValue("@Date", date.Date);
-
-        //        object result = await cmd.ExecuteScalarAsync();
-        //        return result == DBNull.Value ? 1 : Convert.ToInt32(result);
-        //    }
-        //}
-    }
-
+}

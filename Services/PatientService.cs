@@ -35,9 +35,31 @@ namespace CMSv2026WebApp.Services
             return _patientRepository.GetAllPatients();
         }
 
-        public Patient GetPatientsById(int patientId)
+        public void UpdatePatient(Patient patient)
+        {
+            _patientRepository.UpdatePatient(patient);
+        }
+
+        public void DeactivatePatient(int patientId)
+        {
+            _patientRepository.DeactivatePatient(patientId);
+        }
+
+        public IEnumerable<Patient> SearchPatients(string searchTerm)
+        {
+            return _patientRepository.SearchPatients(searchTerm);
+        }
+
+        public Patient GetPatientById(int patientId)
         {
             return _patientRepository.GetPatientById(patientId);
         }
+
+        void IPatientService.AddPatient(Patient patient)
+        {
+           _patientRepository.AddPatient(patient);
+        }
+
+        
     }
 }

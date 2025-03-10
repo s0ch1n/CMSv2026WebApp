@@ -69,7 +69,7 @@ namespace CMSv2026WebApp.Controllers
         //GET: Doctor/PatientDetails/
         public IActionResult PatientDetails(int patientId)
         {
-            var patient = _patientService.GetPatientsById(patientId);
+            var patient = _patientService.GetPatientById(patientId);
             if (patient == null)
             {
                 return NotFound();

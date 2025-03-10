@@ -1,0 +1,74 @@
+﻿@model IEnumerable<CMSv2026WebApp.Models.Patient>
+
+@{
+    ViewData["Title"] = "Patient Management";
+}
+
+<h1>Patient Management</h1>
+
+<p>
+    <a asp-action="AddPatient" class="btn btn-success">Add New Patient</a>
+</p>
+
+<form asp-action="SearchPatients" method="get" class="mb-4">
+    <div class="form-row">
+        <div class="col-md-8">
+            <input type="text" name="searchTerm" class="form-control" placeholder="Search by Name, Mobile Number, or Email" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </div>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Patient ID</th>
+                <th>Patient Name</th>
+                <th>Date of Birth</th>
+                <th>Gender</th>
+                <th>Mobile Number</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Registration ID</th>
+                <th>Blood Group</th>
+                <th>Is Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in Model)
+            {
+                <tr>
+                    <td>@patient.PatientId</td>
+                    <td>@patient.PatientName</td>
+                    <td>@patient.DateOfBirth.ToShortDateString()</td>
+                    <td>@patient.Gender</td>
+                    <td>@patient.MobileNumber</td>
+                    <td>@patient.Email</td>
+                    <td>@patient.Address</td>
+                    <td>@patient.RegistrationId</td>
+                    <td>@patient.BloodGroup</td>
+                    <td>@(patient.IsActive ? "Yes" : "No")</td>
+                    <td>
+                        <a asp-action="EditPatient" asp-route-id="@patient.PatientId" class="btn btn-warning btn-sm">Edit</a>
+                        <form asp-action="DeactivatePatient" asp-route-id="@patient.PatientId" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to deactivate this patient?')">Deactivate</button>
+                        </form>
+                        <a asp-action="BookAppointment" asp-route-patientId="@patient.PatientId" class="btn btn-primary btn-sm">Book Appointment</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        No patients found.
+    </div>
+}

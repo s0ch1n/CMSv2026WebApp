@@ -8,6 +8,8 @@ namespace CMSv2026WebApp.Models
         [Key]
         public int DoctorId { get; set; }
 
+        public string Name { get; set; } // Doctor's name
+
         [Required]
         public decimal ConsultationFee { get; set; }
 
