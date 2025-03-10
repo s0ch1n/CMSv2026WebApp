@@ -1,43 +1,54 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CMSv2026WebApp.Models
 {
     public class Staff
     {
+       
         [Key]
         public int StaffId { get; set; }
 
-        [Required, MaxLength(100)]
+        [Required]
         public string FullName { get; set; }
 
-        [Required, MaxLength(10)]
+        [Required]
         public string Gender { get; set; }
+
+        [Required]
+        public DateTime? DateOfBirth { get; set; }
+
 
         [Required]
         public DateTime DateOfJoining { get; set; }
 
-        public DateTime? DateOfBirth { get; set; }
-
-        [Required, MaxLength(15)]
+        [Required]
+        [Phone]
         public string MobileNumber { get; set; }
 
-        [Required, MaxLength(50)]
+        [Required]
         public string UserName { get; set; }
 
-        [Required, MaxLength(255)]
+        [Required]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [MaxLength(255)]
-        public string Qualification { get; set; } 
-
-        [Required, MaxLength(100), EmailAddress]
-        public string EmailAddress { get; set; } 
-
+        [Required]
         [ForeignKey("Role")]
         public int? RoleId { get; set; }
-        public Role Role { get; set; }
+        
+        public Role? Role { get; set; }
 
-        public bool IsActive { get; set; } = true;
+
+        [Required]
+        [EmailAddress]
+        public string EmailAddress { get; set; }
+
+        [Required]
+        public string Qualification { get; set; }
+
+        public bool IsActive { get; set; }
     }
-}
+
+    }
+

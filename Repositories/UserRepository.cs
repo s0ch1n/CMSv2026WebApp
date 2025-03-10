@@ -1,4 +1,5 @@
-﻿using CMSv2026WebApp.Models;
+﻿using System.Data;
+using CMSv2026WebApp.Models;
 using Microsoft.Data.SqlClient;
 
 namespace CMSv2026WebApp.Repositories
@@ -19,13 +20,45 @@ namespace CMSv2026WebApp.Repositories
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                var sql = @"INSERT INTO Staffs (FullName, Gender, DateOfJoining, DateOfBirth, MobileNumber, UserName, 
-                        Password, Qualification, EmailAddress, RoleId, IsActive) 
-                        VALUES (@FullName, @Gender, @DateOfJoining, @DateOfBirth, @MobileNumber, @UserName, 
-                        @Password, @Qualification, @EmailAddress, @RoleId, @IsActive)";
+
+                // Calling the stored procedure 'AddStaff' instead of directly writing the INSERT SQL
+                var sql = "AddStaff"; // The name of the stored procedure
 
                 using (var command = new SqlCommand(sql, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure; // Specify that we are calling a stored procedure
+
+                    // Adding parameters to the stored procedure
+                    command.Parameters.AddWithValue("@FullName", staff.FullName);
+                    command.Parameters.AddWithValue("@Gender", staff.Gender);
+                    command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
+                    command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
+                    command.Parameters.AddWithValue("@UserName", staff.UserName);
+                    command.Parameters.AddWithValue("@Password", staff.Password);
+                    command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
+                    command.Parameters.AddWithValue("@RoleId", staff.RoleId);
+                    command.Parameters.AddWithValue("@IsActive", staff.IsActive);
+
+                    // Execute the stored procedure
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+        public Staff UpdateStaff(Staff staff)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                var sql = @"UPDATE Staffs SET FullName=@FullName, Gender=@Gender, DateOfJoining=@DateOfJoining, 
+                   DateOfBirth=@DateOfBirth, MobileNumber=@MobileNumber, UserName=@UserName, 
+                   Password=@Password, Qualification=@Qualification, EmailAddress=@EmailAddress, 
+                   RoleId=@RoleId, IsActive=@IsActive WHERE StaffId=@StaffId";
+
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@StaffId", staff.StaffId);
                     command.Parameters.AddWithValue("@FullName", staff.FullName);
                     command.Parameters.AddWithValue("@Gender", staff.Gender);
                     command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
@@ -41,9 +74,8 @@ namespace CMSv2026WebApp.Repositories
                     command.ExecuteNonQuery();
                 }
             }
+            return staff; // Ensure you return the updated staff object
         }
-
-
         public Staff AuthenticateUser(string userName, string password)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -150,7 +182,7 @@ namespace CMSv2026WebApp.Repositories
                                 FullName = reader.GetString(1),
                                 Gender = reader.GetString(2),
                                 DateOfJoining = reader.GetDateTime(3),
-                                DateOfBirth = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                                DateOfBirth = (DateTime)(reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4)),
                                 MobileNumber = reader.GetString(5),
                                 UserName = reader.GetString(6),
                                 Password = reader.GetString(7), 
@@ -171,36 +203,80 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
-        public void UpdateStaff(Staff staff)
+        //public void UpdateStaff(Staff staff)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        connection.Open();
+        //        var sql = @"UPDATE Staffs SET FullName=@FullName, Gender=@Gender, DateOfJoining=@DateOfJoining, 
+        //                DateOfBirth=@DateOfBirth, MobileNumber=@MobileNumber, UserName=@UserName, 
+        //                Password=@Password, Qualification=@Qualification, EmailAddress=@EmailAddress, 
+        //                RoleId=@RoleId, IsActive=@IsActive WHERE StaffId=@StaffId";
+
+        //        using (var command = new SqlCommand(sql, connection))
+        //        {
+        //            command.Parameters.AddWithValue("@StaffId", staff.StaffId);
+        //            command.Parameters.AddWithValue("@FullName", staff.FullName);
+        //            command.Parameters.AddWithValue("@Gender", staff.Gender);
+        //            command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
+        //            command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
+        //            command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
+        //            command.Parameters.AddWithValue("@UserName", staff.UserName);
+        //            command.Parameters.AddWithValue("@Password", staff.Password);
+        //            command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
+        //            command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
+        //            command.Parameters.AddWithValue("@RoleId", staff.RoleId);
+        //            command.Parameters.AddWithValue("@IsActive", staff.IsActive);
+
+        //            command.ExecuteNonQuery();
+        //        }
+        //    }
+        //}
+
+        public Staff GetStaffById(int staffId)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                var sql = @"UPDATE Staffs SET FullName=@FullName, Gender=@Gender, DateOfJoining=@DateOfJoining, 
-                        DateOfBirth=@DateOfBirth, MobileNumber=@MobileNumber, UserName=@UserName, 
-                        Password=@Password, Qualification=@Qualification, EmailAddress=@EmailAddress, 
-                        RoleId=@RoleId, IsActive=@IsActive WHERE StaffId=@StaffId";
+                var sql = @"SELECT s.StaffId, s.FullName, s.Gender, s.DateOfJoining, s.DateOfBirth,
+                   s.MobileNumber, s.UserName, s.Password, s.Qualification, s.EmailAddress,
+                   s.RoleId, s.IsActive, r.RoleName FROM Staffs s
+                   JOIN Roles r ON s.RoleId = r.RoleId
+                   WHERE s.StaffId = @StaffId";
 
                 using (var command = new SqlCommand(sql, connection))
                 {
-                    command.Parameters.AddWithValue("@StaffId", staff.StaffId);
-                    command.Parameters.AddWithValue("@FullName", staff.FullName);
-                    command.Parameters.AddWithValue("@Gender", staff.Gender);
-                    command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
-                    command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
-                    command.Parameters.AddWithValue("@UserName", staff.UserName);
-                    command.Parameters.AddWithValue("@Password", staff.Password);
-                    command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
-                    command.Parameters.AddWithValue("@RoleId", staff.RoleId);
-                    command.Parameters.AddWithValue("@IsActive", staff.IsActive);
-
-                    command.ExecuteNonQuery();
+                    command.Parameters.AddWithValue("@StaffId", staffId);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new Staff
+                            {
+                                StaffId = reader.GetInt32(0),
+                                FullName = reader.GetString(1),
+                                Gender = reader.GetString(2),
+                                DateOfJoining = reader.GetDateTime(3),
+                                DateOfBirth = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                                MobileNumber = reader.GetString(5),
+                                UserName = reader.GetString(6),
+                                Password = reader.GetString(7),
+                                Qualification = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                EmailAddress = reader.GetString(9),
+                                RoleId = reader.GetInt32(10),
+                                IsActive = reader.GetBoolean(11),
+                                Role = new Role
+                                {
+                                    RoleId = reader.GetInt32(10),
+                                    RoleName = reader.GetString(12)
+                                }
+                            };
+                        }
+                    }
                 }
             }
+            return null; // Return null if staff is not found
         }
-
         public void UpdateUserStatus(int staffId, bool isActive)
         {
             using (var connection = new SqlConnection(_connectionString))
