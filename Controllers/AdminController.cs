@@ -18,71 +18,97 @@ namespace CMSv2026WebApp.Controllers
         //GET
         public IActionResult Index()
         {
-            if (!IsUserInRole(1))
-            {
-                return RedirectToAction("Login", "Accounts");
-            }
+            return View();
+        }
+
+        public IActionResult StaffManagement()
+        {
             var viewModel = new UserRegistrationViewModel
             {
                 Staffs = _userService.GetAllStaffs(),
                 Roles = _userService.GetAllStaffRoles()
-
             };
             ViewData["PageTitle"] = "Admin";
             ViewBag.Role = "Admin";
             ViewBag.Roles = viewModel.Roles;
-            //return Content("Admin Dashboard)
             return View(viewModel);
         }
-
-        //To Check RoleId
-        private bool IsUserInRole(int requiredRoleId)
+        [HttpPost("{staffId}")]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegisterNewStaff(UserRegistrationViewModel viewModel)
         {
-            //Get the roleId from cookies
-            var roleId = Request.Cookies["RoleId"];
-
-            //If not match --> Redirect to Login
-
-            return roleId != null
-                && int.TryParse(roleId, out int userRoleId)
-                && userRoleId == requiredRoleId;
-        }
-
-        //POST: /Admin/RegisterUser
-        public IActionResult RegisterNewUser(UserRegistrationViewModel viewModel)
-        {
-            if (!IsUserInRole(1))
-            {
-                return RedirectToAction("Login", "Accounts");
-            }
             if (ModelState.IsValid)
             {
                 _userService.InsertStaff(viewModel.Staff);
                 TempData["SuccessMessage"] = $"Staff '{viewModel.Staff.UserName}' registered successfully";
+                return RedirectToAction("StaffManagement");
+            }
 
-                return RedirectToAction("Index");
+            // Log model state errors
+            foreach (var modelStateKey in ModelState.Keys)
+            {
+                var modelStateVal = ModelState[modelStateKey];
+                foreach (var error in modelStateVal.Errors)
+                {
+                    var errorMessage = error.ErrorMessage;
+                    // You can log this to a file or the console
+                    Console.WriteLine($"ModelState Error: {modelStateKey} - {errorMessage}");
+                }
             }
 
             viewModel.Staffs = _userService.GetAllStaffs();
             viewModel.Roles = _userService.GetAllStaffRoles();
             ViewBag.Roles = viewModel.Roles;
             TempData["ErrorMessage"] = "Failed to register user. Please check the form";
-            return View("Index", viewModel);
+            return View("StaffManagement", viewModel);
         }
+        [HttpGet("{staffId}")]
+        public IActionResult EditStaff(int staffId)
+{
+    // Retrieve staff data from the database using your service
+    var staff = _userService.GetStaffById(staffId);
 
-        //POST: /Admin/IsActive
-        [HttpPost]
-        public IActionResult ToggleUserStatus(int userId, bool isActive)
+    if (staff == null)
+    {
+        return NotFound();
+
+    }
+
+    var viewModel = new UserRegistrationViewModel
+    {
+        Staff = staff,
+        Roles = _userService.GetAllStaffRoles()
+    };
+
+    return View(viewModel);
+}
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public IActionResult EditStaff(UserRegistrationViewModel viewModel)
+{
+    if (ModelState.IsValid)
+    {
+        var updatedStaff = _userService.UpdateStaff(viewModel.Staff);
+        TempData["SuccessMessage"] = "Staff details updated successfully!";
+        return RedirectToAction("StaffManagement");
+    }
+
+    // Log errors and return to the view if validation fails
+    foreach (var modelStateKey in ModelState.Keys)
+    {
+        var modelStateVal = ModelState[modelStateKey];
+        foreach (var error in modelStateVal.Errors)
         {
-            try
-            {
-                _userService.UpdateStaffStatus(userId, isActive);
-                return Json(new { success = true, message = "Staff status updated successfully!" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error: " + ex.Message });
-            }
+            Console.WriteLine($"ModelState Error: {modelStateKey} - {error.ErrorMessage}");
         }
     }
+
+    viewModel.Roles = _userService.GetAllStaffRoles();
+    return View("EditStaff", viewModel);
 }
+
+    }
+    }
+
+

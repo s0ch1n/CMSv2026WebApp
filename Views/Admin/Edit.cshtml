@@ -1,0 +1,124 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model CMSv2026WebApp.ViewModel.UserRegistrationViewModel
+
+@{
+    ViewData["Title"] = "Edit Staff";
+}
+
+<div class="row">
+    <div class="col-md-6 col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Edit Staff</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditStaff" method="post">
+                    <input type="hidden" asp-for="Staff.StaffId" />
+
+                    <!-- Full Name -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.FullName" class="form-label">Full Name</label>
+                        <input asp-for="Staff.FullName" class="form-control" />
+                        <span asp-validation-for="Staff.FullName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Gender" class="form-label">Gender</label>
+                        <select asp-for="Staff.Gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Staff.Gender" class="text-danger"></span>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.DateOfBirth" class="form-label">Date of Birth</label>
+                        <input asp-for="Staff.DateOfBirth" class="form-control" type="date" />
+                        <span asp-validation-for="Staff.DateOfBirth" class="text-danger"></span>
+                    </div>
+
+                    <!-- Date of Joining -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.DateOfJoining" class="form-label">Date of Joining</label>
+                        <input asp-for="Staff.DateOfJoining" class="form-control" type="date" />
+                        <span asp-validation-for="Staff.DateOfJoining" class="text-danger"></span>
+                    </div>
+
+                    <!-- Mobile Number -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.MobileNumber" class="form-label">Mobile Number</label>
+                        <input asp-for="Staff.MobileNumber" class="form-control" />
+                        <span asp-validation-for="Staff.MobileNumber" class="text-danger"></span>
+                    </div>
+
+                    <!-- User Name -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.UserName" class="form-label">Username</label>
+                        <input asp-for="Staff.UserName" class="form-control" />
+                        <span asp-validation-for="Staff.UserName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Password" class="form-label">Password</label>
+                        <input asp-for="Staff.Password" class="form-control" type="password" />
+                        <span asp-validation-for="Staff.Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Role Dropdown -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.RoleId" class="form-label">Role</label>
+                        <select asp-for="Staff.RoleId" class="form-control">
+                            <option value="">Select Role</option>
+                            @foreach (var role in Model.Roles)
+                            {
+                                    <option value="@role.RoleId">@role.RoleName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Staff.RoleId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.EmailAddress" class="form-label">Email Address</label>
+                        <input asp-for="Staff.EmailAddress" class="form-control" />
+                        <span asp-validation-for="Staff.EmailAddress" class="text-danger"></span>
+                    </div>
+
+                    <!-- Qualification -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Qualification" class="form-label">Qualification</label>
+                        <input asp-for="Staff.Qualification" class="form-control" />
+                        <span asp-validation-for="Staff.Qualification" class="text-danger"></span>
+                    </div>
+
+                    <!-- IsActive Checkbox -->
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            <input asp-for="Staff.IsActive" class="form-check-input" type="checkbox" />
+                            <label asp-for="Staff.IsActive" class="form-check-label">Is Active</label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-group mb-3">
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <a asp-action="StaffManagement" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

@@ -27,12 +27,18 @@ namespace CMSv2026WebApp.Services
 
         public List<Role> GetAllStaffRoles()
         {
-            return _userRepository.GetAllRoles();
+            var roles = _userRepository.GetAllRoles();
+            return roles ?? new List<Role>();
         }
 
         public List<Staff> GetAllStaffs()
         {
             return _userRepository.GetAllUsers();
+        }
+
+        public Staff GetStaffById(int staffId)
+        {
+            return _userRepository.GetStaffById(staffId);
         }
 
         public void InsertStaff(Staff staff)
@@ -45,9 +51,21 @@ namespace CMSv2026WebApp.Services
             _userRepository.DeleteStaff(staffId);
         }
 
+        public Staff UpdateStaff(Staff staff)
+        {
+         return  _userRepository.UpdateStaff(staff);
+        }
+
         public void UpdateStaffStatus(int userId, bool isActive)
         {
-            _userRepository.UpdateUserStatus(userId, isActive);
+            throw new NotImplementedException();
         }
+
+
+
+        //public void UpdateStaffStatus(int userId, bool isActive)
+        //{
+        //    _userRepository.UpdateUserStatus(userId, isActive);
+        //}
     }
  }

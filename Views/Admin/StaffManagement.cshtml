@@ -1,0 +1,338 @@
+﻿@model CMSv2026WebApp.ViewModel.UserRegistrationViewModel
+
+@{
+    ViewData["Title"] = ViewData["PageTitle"];
+}
+
+<div class="row">
+    <!-- Left Side: Register Staff Form -->
+    <div class="col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Register New Staff</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="RegisterNewStaff" method="post">
+                    <!-- Full Name -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.FullName" class="form-label">Full Name</label>
+                        <input asp-for="Staff.FullName" class="form-control" placeholder="Full Name" />
+                        <span asp-validation-for="Staff.FullName" class="text-danger"></span>
+                    </div>
+                    <!-- Gender -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Gender" class="form-label">Gender</label>
+                        <select asp-for="Staff.Gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Staff.Gender" class="text-danger"></span>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.DateOfBirth" class="form-label">Date of Birth</label>
+                        <input asp-for="Staff.DateOfBirth" class="form-control" type="date" />
+                        <span asp-validation-for="Staff.DateOfBirth" class="text-danger"></span>
+                    </div>
+                    <!-- Date of Joining -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.DateOfJoining" class="form-label">Date of Joining</label>
+                        <input asp-for="Staff.DateOfJoining" class="form-control" type="date" />
+                        <span asp-validation-for="Staff.DateOfJoining" class="text-danger"></span>
+                    </div>
+
+                    <!-- Mobile Number -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.MobileNumber" class="form-label">Mobile Number</label>
+                        <input asp-for="Staff.MobileNumber" class="form-control" placeholder="Mobile Number" />
+                        <span asp-validation-for="Staff.MobileNumber" class="text-danger"></span>
+                    </div>
+
+                    <!-- User Name -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.UserName" class="form-label">Username</label>
+                        <input asp-for="Staff.UserName" class="form-control" placeholder="Username" />
+                        <span asp-validation-for="Staff.UserName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Password" class="form-label">Password</label>
+                        <input asp-for="Staff.Password" class="form-control" type="password" placeholder="Password" />
+                        <span asp-validation-for="Staff.Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Dropdown for RoleId -->
+                    <div class="form-group">
+                        <label asp-for="Staff.RoleId" class="control-label bold-label">
+                            Role
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Staff.RoleId" class="form-control" id="roleList" required>
+                            <option value="">----Select Role----</option>
+                            @foreach (var role in ViewBag.Roles)
+                            {
+                                <option value="@role.RoleId">
+                                    @role.RoleName
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="Staff.RoleId" class="text-danger"></span>
+                    </div>
+                    <!-- Email Address -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.EmailAddress" class="form-label">Email Address</label>
+                        <input asp-for="Staff.EmailAddress" class="form-control" placeholder="Email Address" />
+                        <span asp-validation-for="Staff.EmailAddress" class="text-danger"></span>
+                    </div>
+
+                    <!-- Qualification -->
+                    <div class="form-group mb-3">
+                        <label asp-for="Staff.Qualification" class="form-label">Qualification</label>
+                        <input asp-for="Staff.Qualification" class="form-control" placeholder="Qualification" />
+                        <span asp-validation-for="Staff.Qualification" class="text-danger"></span>
+                    </div>
+
+                    <!-- IsActive CheckBox -->
+                    <div class="form-group mb-3">
+                        <div class="form-check">
+                            <input asp-for="Staff.IsActive" class="form-check-input" type="checkbox" />
+                            <label asp-for="Staff.IsActive" class="form-check-label">Is Active</label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-group mb-3">
+                        <input type="submit" value="Register" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Get All Staff Details Form -->
+    <div class="col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">All Staffs</h4>
+                <!-- Search Box -->
+                <div class="d-flex">
+                    <input type="text" id="staffSearch" class="form-control form-control-sm" placeholder="Search Staff..." />
+                    <button id="searchButton" class="btn btn-primary btn-sm ms-2">Search</button>
+                    <!-- Close Button for Search Input -->
+                    <button id="clearSearch" class="btn btn-sm ms-2" style="display: none;">X</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover text-center">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Age</th>
+                                <th>Date of Joining</th>
+                                <th>Mobile Number</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            @foreach (var user in Model.Staffs)
+                            {
+                                <tr class="staff-row" data-id="@user.StaffId" data-fullname="@user.FullName" data-gender="@user.Gender"
+                                    data-dob="@user.DateOfBirth?.ToString("yyyy-MM-dd")" data-mobile="@user.MobileNumber"
+                                    data-role="@user.Role?.RoleName" data-isactive="@user.IsActive">
+                                    <td>@user.FullName</td>
+                                    <td>@user.Gender</td>
+                                    <td class="age-cell" data-dob="@user.DateOfBirth?.ToString("yyyy-MM-dd")"></td>
+                                    <td>@user.DateOfJoining.ToString("yyyy-MM-dd")</td>
+                               
+                                    <td>@user.MobileNumber</td>
+                                    <td>@user.Role?.RoleName</td>
+                                    <td>
+                                        <div class="form-check form-switch d-flex justify-content-center">
+                                            <input type="checkbox" class="form-check-input toggle-status"
+                                                   data-userid="@user.StaffId" @(user.IsActive ? "checked" : "") />
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Details Modal -->
+<div class="modal fade" id="staffDetailsModal" tabindex="-1" aria-labelledby="staffDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staffDetailsModalLabel">Staff Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Staff Details Form -->
+                <div class="form-group mb-3">
+                    <label for="staffFullName" class="form-label">Full Name</label>
+                    <input type="text" id="staffFullName" class="form-control" readonly />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="staffGender" class="form-label">Gender</label>
+                    <input type="text" id="staffGender" class="form-control" readonly />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="staffDob" class="form-label">Date of Birth</label>
+                    <input type="text" id="staffDob" class="form-control" readonly />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="staffMobile" class="form-label">Mobile Number</label>
+                    <input type="text" id="staffMobile" class="form-control" readonly />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="staffRole" class="form-label">Role</label>
+                    <input type="text" id="staffRole" class="form-control" readonly />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="staffStatus" class="form-label">Status</label>
+                    <input type="checkbox" id="staffStatus" class="form-check-input" disabled />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editStaffBtn">Edit</button>
+                <button type="button" class="btn btn-danger" id="deactivateStaffBtn">Deactivate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        $(document).ready(function () {
+            // Calculate Age
+            function calculateAge(birthDate) {
+                const today = new Date();
+                const birthDateObj = new Date(birthDate);
+                let age = today.getFullYear() - birthDateObj.getFullYear();
+                const month = today.getMonth() - birthDateObj.getMonth();
+                if (month < 0 || (month === 0 && today.getDate() < birthDateObj.getDate())) {
+                    age--;
+                }
+                return age;
+            }
+
+            // Update the age column with the calculated age
+            $(".age-cell").each(function () {
+                const dob = $(this).data("dob");
+                const age = calculateAge(dob);
+                $(this).text(age); // Set the calculated age in the cell
+            });
+
+            // When clicking on a staff row, open the modal with staff details
+            $(".staff-row").on("click", function () {
+                // Retrieve staff details from the clicked row
+                let staffId = $(this).data('id');
+                let fullName = $(this).data('fullname');
+                let gender = $(this).data('gender');
+                let dob = $(this).data('dob');
+                let mobile = $(this).data('mobile');
+                let role = $(this).data('role');
+                let isActive = $(this).data('isactive');
+
+                // Populate the modal fields with the staff details
+                $("#staffFullName").val(fullName);
+                $("#staffGender").val(gender);
+                $("#staffDob").val(dob);
+                $("#staffMobile").val(mobile);
+                $("#staffRole").val(role);
+                $("#staffStatus").prop("checked", isActive);
+
+                // Show the modal
+                $("#staffDetailsModal").modal('show');
+
+                // Handle Edit button
+                $("#editStaffBtn").on("click", function () {
+                    window.location.href = '@Url.Action("EditStaff", "Admin")/' + staffId;
+                });
+
+                // Handle Deactivate button
+                $("#deactivateStaffBtn").on("click", function () {
+                    $.ajax({
+                        url: '@Url.Action("DeactivateStaff", "Admin")',
+                        type: 'POST',
+                        data: { staffId: staffId },
+                        success: function (response) {
+                            toastr.success('Staff deactivated successfully!');
+                            $("#staffDetailsModal").modal('hide');
+                        },
+                        error: function () {
+                            toastr.error('Failed to deactivate staff!');
+                        }
+                    });
+                });
+            });
+
+
+            // Handle Search
+            $("#searchButton").on("click", function () {
+                let searchQuery = $("#staffSearch").val().toLowerCase(); // Get search query
+                $("#staffTableBody tr").each(function () {
+                    let fullName = $(this).find("td:nth-child(1)").text().toLowerCase(); // Get the full name of each staff member
+                    if (fullName.indexOf(searchQuery) !== -1) {
+                        $(this).show(); // Show row if it matches search query
+                    } else {
+                        $(this).hide(); // Hide row if it doesn't match
+                    }
+                });
+
+                // Show close button when there's a search query
+                if (searchQuery) {
+                    $("#clearSearch").show();
+                } else {
+                    $("#clearSearch").hide();
+                }
+            });
+
+            // Clear search input and hide the search results
+            $("#clearSearch").on("click", function () {
+                $("#staffSearch").val(''); // Clear the input field
+                $("#searchButton").click(); // Trigger search button click to reset the table
+                $(this).hide(); // Hide the clear button
+            });
+
+            // Toggle status change (same as your current code)
+            $(".toggle-status").on("change", function () {
+                let staffId = $(this).data("staffid");
+                let isActive = $(this).prop("checked");
+
+                $.ajax({
+                    url: '@Url.Action("ToggleUserStatus", "Admin")',
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    dataType: 'json',
+                    data: { staffId: staffId, isActive: isActive },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.warning(response.message || "Staff status update failed.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        toastr.error("Failed to update staff status.");
+                    }
+                });
+            });
+        });
+    </script>
+}
+
