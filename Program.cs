@@ -12,17 +12,24 @@ namespace CMSv2026WebApp
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            //Fetching Connection String from appsettings.json
+            // Fetching Connection String from appsettings.json
             var connectionString = builder.Configuration.GetConnectionString("ConnStrMVC");
 
-            //Registering Connection String in Dependency Injection
+            // Registering Connection String in Dependency Injection
             builder.Services.AddSingleton(connectionString);
 
-            //Register Services and Repositories
+            // Register Services and Repositories
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-
             builder.Services.AddScoped<IUserService, UserService>();
 
+            builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+            builder.Services.AddScoped<IMedicineService, MedicineService>();
+
+            builder.Services.AddScoped<ILabTestPrescriptionRepository, LabTestPrescriptionRepository>();
+            builder.Services.AddScoped<ILabTestPrescriptionService, LabTestPrescriptionService>();
+
+            builder.Services.AddScoped<IMedicineStockRepository, MedicineStockRepository>();
+            builder.Services.AddScoped<IMedicineStockService, MedicineStockService>();
 
             var app = builder.Build();
 
@@ -43,9 +50,10 @@ namespace CMSv2026WebApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Accounts}/{action=Login}/{id?}");
+                pattern: "{controller=MedicineStock}/{action=AddMedicinestock}/{id?}");
 
             app.Run();
         }
     }
 }
+

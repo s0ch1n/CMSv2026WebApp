@@ -10,7 +10,6 @@ namespace CMSv2026WebApp.Repositories
         Task AddConsultationAsync(Consultation consultation);
         Task AddPrescriptionAsync(MedicinePrescription prescription);
         Task RequestLabTestAsync(LabTest labTest);
-        Task<IEnumerable<LabTestResult>> GetPatientLabResultsAsync(int patientId);
         Task ReferPatientAsync(Referral referral);
         
     }

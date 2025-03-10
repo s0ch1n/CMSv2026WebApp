@@ -1,0 +1,20 @@
+﻿@model CMSv2026WebApp.Models.LabTestReport
+
+<h2>@ViewData["Title"]</h2>
+
+@if (Model != null)
+{
+    <div>
+        <p><strong>Prescription ID:</strong> @Model.PrescriptionId</p>
+        <p><strong>Test Name:</strong> @Model.TestName</p>
+        <p><strong>Test Result:</strong> @Model.TestResult</p>
+        <p><strong>Remarks:</strong> @Model.Remarks</p>
+        <p><strong>Reference Range:</strong> @Model.ReferenceRange</p>
+        <p><strong>Amount:</strong> @Model.Amount</p>
+        <p><strong>Sample Required:</strong> @Model.SampleRequired</p>
+    </div>
+}
+else
+{
+    <p>No report available.</p>
+}

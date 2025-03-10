@@ -1,0 +1,22 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model CMSv2026WebApp.Models.Medicine
+
+<!-- ✅ PAGE HEADER -->
+<div class="container mt-4">
+    <h2 class="text-primary">Medicine Details</h2>
+
+    <div class="card shadow p-3">
+        <p><strong>Name:</strong> @Model.MedicineName</p>
+        <p><strong>Expiry Date:</strong> @Model.ExpiryDate.ToString("yyyy-MM-dd")</p>
+        <p><strong>Unit:</strong> @Model.Unit</p>
+        <p><strong>Type:</strong> @Model.MedicineType?.MedicineTypeName</p>
+        <p><strong>Active:</strong> @(Model.IsActive ? "Yes" : "No")</p>
+    </div>
+
+    <!-- ✅ ONLY BACK TO LIST BUTTON -->
+    <a href="javascript:history.back()" class="btn btn-outline-secondary mt-3">🔙 Back to List</a>
+</div>

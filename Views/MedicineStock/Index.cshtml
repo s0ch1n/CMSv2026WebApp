@@ -1,0 +1,32 @@
+﻿@model IEnumerable<CMSv2026WebApp.Models.MedicineStock>
+
+<h2>Medicine Stock List</h2>
+
+<a asp-action="AddMedicineStock" class="btn btn-success mb-3">Add New Stock</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Stock In Hand</th>
+            <th>Reorder Level</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var stock in Model)
+        {
+            <tr>
+                <td>@stock.MedicineStockId</td>
+                <td>@stock.StockInHand</td>
+                <td>@stock.ReOrderLevel</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@stock.MedicineStockId" class="btn btn-warning btn-sm">Edit</a>
+                    <form asp-action="Delete" asp-route-id="@stock.MedicineStockId" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

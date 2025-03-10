@@ -1,0 +1,29 @@
+﻿@model CMSv2026WebApp.Models.MedicineStock
+
+<h2>Add Medicine Stock</h2>
+
+<form asp-action="AddMedicineStock" method="post">
+    @Html.AntiForgeryToken()
+
+    <div>
+        <label>Stock In Hand:</label>
+        <input asp-for="StockInHand" class="form-control" />
+        <span asp-validation-for="StockInHand" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Reorder Level:</label>
+        <input asp-for="ReOrderLevel" class="form-control" />
+        <span asp-validation-for="ReOrderLevel" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Save</button>
+</form>
+
+<a href="/MedicineStock/Index" class="btn btn-secondary mt-2">Back to List</a>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

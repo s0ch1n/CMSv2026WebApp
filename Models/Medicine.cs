@@ -17,8 +17,10 @@ namespace CMSv2026WebApp.Models
         [Required, MaxLength(50)]
         public string Unit { get; set; }
 
-        [ForeignKey("MedicineType")]
+        [Required]
         public int MedicineTypeId { get; set; }
+
+        [ForeignKey("MedicineTypeId")]
         public MedicineType MedicineType { get; set; }
 
         public bool IsActive { get; set; } = true;
