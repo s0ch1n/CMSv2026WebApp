@@ -10,7 +10,10 @@ namespace CMSv2026WebApp.Models
 
         [ForeignKey("Medicine")]
         public int MedicineId { get; set; }
-        public Medicine Medicine { get; set; }
+        public virtual Medicine Medicine { get; set; }
+
+        [Required, MaxLength(50)]
+        public string MedicineName { get; set; }
 
         [Required, MaxLength(50)]
         public string Dosage { get; set; }
@@ -25,6 +28,6 @@ namespace CMSv2026WebApp.Models
 
         [ForeignKey("Appointment")]
         public int AppointmentId { get; set; }
-        public Appointment Appointment { get; set; }
+        public virtual Appointment Appointment { get; set; }
     }
 }

@@ -149,6 +149,7 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
+
         public List<Specialization> GetSpecializations()
         {
             using (var conn = new SqlConnection(_connectionString))
@@ -243,6 +244,17 @@ namespace CMSv2026WebApp.Repositories
             return null;
         }
 
+        public Doctor GetDoctorsById(int doctorId)
+        {
+            var query = "SELECT * FROM Doctors WHERE DoctorId = @DoctorId";
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                return connection.QuerySingleOrDefault<Doctor>(query, new { DoctorId = doctorId });
+            }
+        }
+
         public bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate)
         {
             using (var conn = new SqlConnection(_connectionString))
@@ -263,10 +275,10 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
-        public List<Staff> GetAvailableDoctors()
-        {
-            throw new NotImplementedException();
-        }
+        //public List<Staff> GetAvailableDoctors()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         public List<TimeSpan> GetAvailableTimeSlots(int doctorId, DateTime appointmentDate)
         {
@@ -330,6 +342,55 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
+        public Appointment GetAppointmentByPatientAndDoctor(int patientId, int doctorId)
+        {
+            if (patientId <= 0 || doctorId <= 0)
+            {
+                throw new ArgumentException("Invalid PatientId or DoctorId.");
+            }
+
+            var query = "SELECT TOP 1 * FROM Appointment WHERE PatientId = @PatientId AND DoctorId = @DoctorId ORDER BY AppointmentDate DESC";
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                return connection.QueryFirstOrDefault<Appointment>(query, new { PatientId = patientId, DoctorId = doctorId });
+            }
+        }
+
+        public Appointment GetAppointmentById(int appointmentId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var query = "SELECT * FROM Appointment WHERE AppointmentId = @AppointmentId";
+                return conn.QuerySingleOrDefault<Appointment>(query, new { AppointmentId = appointmentId });
+            }
+        }
+
+        public void UpdateConsultationStatus(int appointmentId, string status)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    var query = @"
+                UPDATE Appointment 
+                SET ConsultationStatus = @ConsultationStatus
+                WHERE AppointmentId = @AppointmentId";
+
+                    conn.Execute(query, new
+                    {
+                        ConsultationStatus = status,
+                        AppointmentId = appointmentId
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating consultation status: {ex.Message}");
+                throw;
+            }
+        }
+
 
         public List<Appointment> GetTodaysAppointments()
         {
@@ -348,6 +409,8 @@ namespace CMSv2026WebApp.Repositories
                         {
                             var appointment = new Appointment
                             {
+                                TokenNumber = reader.GetInt32(reader.GetOrdinal("TokenNumber")),
+                                ConsultationStatus = reader.GetString(reader.GetOrdinal("ConsultationStatus")),
                                 AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
                                 AppointmentDate = reader.GetDateTime(reader.GetOrdinal("AppointmentDate")),
                                 Patient = new Patient

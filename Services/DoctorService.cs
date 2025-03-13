@@ -63,5 +63,15 @@ namespace CMSv2026WebApp.Services
         {
             return _doctorRepository.SearchDoctorPatients(doctorId, searchQuery);
         }
+
+        public List<string> GetMedicineNamesByTerm(string term)
+        {
+            return _doctorRepository.GetMedicineNamesByTerm(term);
+        }
+
+        public int? GetLabTestIdByName(string testName)
+        {
+            return _doctorRepository.GetLabTestIdByName(testName);
+        }
     }
 }

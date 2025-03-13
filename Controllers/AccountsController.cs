@@ -1,5 +1,8 @@
-﻿using CMSv2026WebApp.Services;
+﻿using System.Security.Claims;
+using CMSv2026WebApp.Services;
 using CMSv2026WebApp.ViewModel;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMSv2026WebApp.Controllers
@@ -28,36 +31,93 @@ namespace CMSv2026WebApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Login(LoginViewModel loginVModel)
         {
-            //Validate
+            // Validate
             if (ModelState.IsValid)
             {
                 var availableUser = _userService.AuthenticateTheUser(loginVModel.UserName, loginVModel.Password);
                 if (availableUser != null)
                 {
-                    //Stores in cookies
+                    // Stores in cookies
                     Response.Cookies.Append("StaffId", availableUser.StaffId.ToString(),
-                    new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+                        new CookieOptions { Expires = DateTime.Now.AddHours(1) });
                     Response.Cookies.Append("UserName", availableUser.UserName.ToString(),
-                    new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+                        new CookieOptions { Expires = DateTime.Now.AddHours(1) });
                     Response.Cookies.Append("RoleId", availableUser.RoleId?.ToString() ?? string.Empty,
-                    new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+                        new CookieOptions { Expires = DateTime.Now.AddHours(1) });
 
-                    //Message
+                    // Create claims
+                    var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, availableUser.StaffId.ToString()),
+                new Claim(ClaimTypes.Name, availableUser.UserName),
+                new Claim(ClaimTypes.Role, availableUser.RoleId?.ToString() ?? string.Empty)
+            };
+
+                    // Add the DoctorId claim if the user is a doctor
+                    if (availableUser.RoleId == 2) // Assuming RoleId 2 is for doctors
+                    {
+                        var doctor = _userService.GetDoctorByStaffId(availableUser.StaffId);
+                        if (doctor != null)
+                        {
+                            claims.Add(new Claim("DoctorId", doctor.DoctorId.ToString()));
+                        }
+                    }
+
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity)).Wait();
+
+                    // Message
                     TempData["SuccessMessage"] = $"Welcome, {availableUser.UserName} !";
 
-                    //Custom redirect
+                    // Custom redirect
                     return RedirectToRoleBasedDashboard(availableUser.RoleId ?? 0);
-
                 }
 
                 TempData["ErrorMessage"] = "Invalid Username or Password!";
-
-
             }
 
             ViewData["PageTitle"] = "Login";
             return View(loginVModel);
         }
+
+
+        ////POST Accounts/Login
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult Login(LoginViewModel loginVModel)
+        //{
+        //    //Validate
+        //    if (ModelState.IsValid)
+        //    {
+        //        var availableUser = _userService.AuthenticateTheUser(loginVModel.UserName, loginVModel.Password);
+        //        if (availableUser != null)
+        //        {
+        //            //Stores in cookies
+        //            Response.Cookies.Append("StaffId", availableUser.StaffId.ToString(),
+        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+        //            Response.Cookies.Append("UserName", availableUser.UserName.ToString(),
+        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+        //            Response.Cookies.Append("RoleId", availableUser.RoleId?.ToString() ?? string.Empty,
+        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
+
+        //            //Message
+        //            TempData["SuccessMessage"] = $"Welcome, {availableUser.UserName} !";
+
+        //            //Custom redirect
+        //            return RedirectToRoleBasedDashboard(availableUser.RoleId ?? 0);
+
+        //        }
+
+        //        TempData["ErrorMessage"] = "Invalid Username or Password!";
+
+
+        //    }
+
+        //    ViewData["PageTitle"] = "Login";
+        //    return View(loginVModel);
+        //}
+
+
         //GET Accounts/Logout
         public IActionResult Logout()
         {

@@ -135,6 +135,7 @@ namespace CMSv2026WebApp.Controllers
             return Json(doctors);
         }
 
+
         [HttpGet]
         public IActionResult GetAvailableTimeSlots(int doctorId, DateTime appointmentDate)
         {

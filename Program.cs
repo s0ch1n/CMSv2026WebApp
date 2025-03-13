@@ -1,5 +1,6 @@
 using CMSv2026WebApp.Repositories;
 using CMSv2026WebApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CMSv2026WebApp
 {
@@ -11,6 +12,15 @@ namespace CMSv2026WebApp
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Add authentication services
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Accounts/Login";
+                    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                });
+
 
             //Fetching Connection String from appsettings.json
             var connectionString = builder.Configuration.GetConnectionString("ConnStrMVC");
@@ -51,7 +61,12 @@ namespace CMSv2026WebApp
 
             app.UseRouting();
 
+            // Add authentication and authorization middleware
+
+            app.UseAuthentication();
             app.UseAuthorization();
+
+            
 
             app.MapControllerRoute(
                 name: "default",

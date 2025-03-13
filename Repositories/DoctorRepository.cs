@@ -20,8 +20,9 @@ namespace CMSv2026WebApp.Repositories
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string query = @"
-                SELECT * FROM Appointment 
-                WHERE DoctorId = @DoctorId AND AppointmentDate = CAST(GETDATE() AS DATE)";
+        SELECT * FROM Appointment
+        WHERE DoctorId = @DoctorId 
+        AND CAST(AppointmentDate AS DATE) = CAST(GETDATE() AS DATE)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -34,11 +35,12 @@ namespace CMSv2026WebApp.Repositories
                         {
                             appointments.Add(new Appointment
                             {
-                                AppointmentId = reader.GetInt32("AppointmentId"),
-                                PatientId = reader.GetInt32("PatientId"),
-                                DoctorId = reader.GetInt32("DoctorId"),
-                                AppointmentDate = reader.GetDateTime("AppointmentDate"),
-                                ConsultationStatus = reader.GetString("ConsultationStatus")
+                                TokenNumber = reader.GetInt32(reader.GetOrdinal("TokenNumber")),
+                                AppointmentId = reader.GetInt32(reader.GetOrdinal("AppointmentId")),
+                                PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                AppointmentDate = reader.GetDateTime(reader.GetOrdinal("AppointmentDate")),
+                                ConsultationStatus = reader.GetString(reader.GetOrdinal("ConsultationStatus"))
                             });
                         }
                     }
@@ -88,12 +90,14 @@ namespace CMSv2026WebApp.Repositories
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string query = @"
-                INSERT INTO Consultation (AppointmentId, Diagnosis, Notes, CreatedDate) 
-                VALUES (@AppointmentId, @Diagnosis, @Notes, GETDATE())";
+                INSERT INTO Consultations (Symptoms, Diagnosis, Notes, CreatedDate, AppointmentId, IsActive)
+                VALUES (@Symptoms, @Diagnosis, @Notes, @CreatedDate, @AppointmentId, @IsActive)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@AppointmentId", consultation.AppointmentId);
+                    cmd.Parameters.AddWithValue("@Symptoms", consultation.Symptoms);
+                    cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
                     cmd.Parameters.AddWithValue("@Diagnosis", consultation.Diagnosis);
                     cmd.Parameters.AddWithValue("@Notes", consultation.Notes ?? (object)DBNull.Value);
 
@@ -233,6 +237,7 @@ namespace CMSv2026WebApp.Repositories
                             {
                                 ConsultationId = reader.GetInt32("ConsultationId"),
                                 AppointmentId = reader.GetInt32("AppointmentId"),
+                                Symptoms = reader.GetString("Symptoms"),
                                 Diagnosis = reader.GetString("Diagnosis"),
                                 Notes = reader["Notes"] as string,
                                 CreatedDate = reader.GetDateTime("CreatedDate")
@@ -242,6 +247,21 @@ namespace CMSv2026WebApp.Repositories
                 }
             }
             return consultations;
+        }
+
+        public int? GetLabTestIdByName(string testName)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT LabTestId FROM LabTest WHERE TestName = @TestName";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TestName", testName);
+                    conn.Open();
+                    var result = cmd.ExecuteScalar();
+                    return result != null ? (int?)Convert.ToInt32(result) : null;
+                }
+            }
         }
 
         public void RequestLabTest(LabTestPrescription labTest)
@@ -319,6 +339,63 @@ namespace CMSv2026WebApp.Repositories
                     cmd.ExecuteNonQuery();
                 }
             }
+        }
+
+        public List<string> GetMedicineNamesByTerm(string term)
+        {
+            var medicineNames = new List<string>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT MedicineName FROM Medicine WHERE MedicineName LIKE @Term";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Term", $"%{term}%");
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            medicineNames.Add(reader.GetString("MedicineName"));
+                        }
+                    }
+                }
+            }
+            return medicineNames;
+        }
+
+        public Doctor GetDoctorByStaffId(int staffId)
+        {
+            Doctor doctor = null;
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                        SELECT D.DoctorId, S.FullName, D.SpecializationId, D.StaffId 
+                        FROM Doctors D
+                        JOIN Staffs S ON D.StaffId = S.StaffId
+                        WHERE S.StaffId = @StaffId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@StaffId", staffId);
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            doctor = new Doctor
+                            {
+                                DoctorId = reader.GetInt32(reader.GetOrdinal("DoctorId")),
+                                Name = reader.GetString(reader.GetOrdinal("FullName")),
+                                SpecializationId = reader.GetInt32(reader.GetOrdinal("SpecializationId")),
+                                StaffId = reader.GetInt32(reader.GetOrdinal("StaffId"))
+                            };
+                        }
+                    }
+                }
+            }
+            return doctor;
         }
     }
 }

@@ -74,20 +74,22 @@ else
             const doctorDropdown = document.getElementById("doctor");
 
             if (specializationId) {
-                fetch(/Receptionist/GetAvailableDoctors?specializationId=${specializationId})
-                    .then(response => response.json())
-                    .then(data => {
-                        doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
-                        data.forEach(doctor => {
-                            doctorDropdown.innerHTML += <option value="${doctor.doctorId}">${doctor.name}</option>;
-                        });
-                        doctorDropdown.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error("Error fetching doctors:", error);
-                        doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
-                        doctorDropdown.disabled = true;
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", `/Receptionist/GetAvailableDoctors?specializationId=${specializationId}`, false);
+                xhr.send();
+
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                    data.forEach(doctor => {
+                        doctorDropdown.innerHTML += `<option value="${doctor.doctorId}">${doctor.name}</option>`;
                     });
+                    doctorDropdown.disabled = false;
+                } else {
+                    console.error("Error fetching doctors:", xhr.statusText);
+                    doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                    doctorDropdown.disabled = true;
+                }
             } else {
                 doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
                 doctorDropdown.disabled = true;
@@ -103,20 +105,22 @@ else
                 // Check for existing appointments
                 checkExistingAppointment(doctorId, appointmentDate);
 
-                fetch(/Receptionist/GetAvailableTimeSlots?doctorId=${doctorId}&appointmentDate=${appointmentDate})
-                    .then(response => response.json())
-                    .then(data => {
-                        timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
-                        data.forEach(slot => {
-                            timeSlotDropdown.innerHTML += <option value="${slot.time}">${slot.time}</option>;
-                        });
-                        timeSlotDropdown.disabled = false;
-                    })
-                    .catch(error => {
-                        console.error("Error fetching time slots:", error);
-                        timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
-                        timeSlotDropdown.disabled = true;
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", `/Receptionist/GetAvailableTimeSlots?doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
+                xhr.send();
+
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                    data.forEach(slot => {
+                        timeSlotDropdown.innerHTML += `<option value="${slot.time}">${slot.time}</option>`;
                     });
+                    timeSlotDropdown.disabled = false;
+                } else {
+                    console.error("Error fetching time slots:", xhr.statusText);
+                    timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                    timeSlotDropdown.disabled = true;
+                }
             } else {
                 timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
                 timeSlotDropdown.disabled = true;
@@ -127,19 +131,21 @@ else
             const patientId = document.querySelector("input[name='PatientId']").value; // Get the patient ID from the hidden input
             const errorMessageDiv = document.getElementById("errorMessage");
 
-            fetch(/Receptionist/CheckExistingAppointment?patientId=${patientId}&doctorId=${doctorId}&appointmentDate=${appointmentDate})
-                .then(response => response.json())
-                .then(data => {
-                    if (data.hasExistingAppointment) {
-                        errorMessageDiv.textContent = "You already have an appointment with this doctor on the selected date please select other date.";
-                        errorMessageDiv.style.display = "block";
-                    } else {
-                        errorMessageDiv.style.display = "none";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error checking existing appointment:", error);
-                });
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", `/Receptionist/CheckExistingAppointment?patientId=${patientId}&doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
+            xhr.send();
+
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                if (data.hasExistingAppointment) {
+                    errorMessageDiv.textContent = "You already have an appointment with this doctor on the selected date. Please select another date.";
+                    errorMessageDiv.style.display = "block";
+                } else {
+                    errorMessageDiv.style.display = "none";
+                }
+            } else {
+                console.error("Error checking existing appointment:", xhr.statusText);
+            }
         }
     </script>
 }

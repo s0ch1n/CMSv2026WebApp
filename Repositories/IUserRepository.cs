@@ -9,10 +9,16 @@ namespace CMSv2026WebApp.Repositories
 
         //Register User ----> Create User by Admin
         void AddStaff(Staff staff);
-        void UpdateStaff(Staff staff);
+        //void UpdateStaff(Staff staff);
         void DeleteStaff(int staffId);
         List<Staff> GetAllUsers();
         List<Role> GetAllRoles();
         void UpdateUserStatus(int userId, bool isActive);
+        Staff UpdateStaff(Staff staff);
+        Staff GetStaffById(int staffId);
+        Staff GetStaffByRoleId(int roleId);
+        int GetStaffIdByRoleId(int roleId);
+        List<Specialization> GetAllSpecializations();
+
     }
 }

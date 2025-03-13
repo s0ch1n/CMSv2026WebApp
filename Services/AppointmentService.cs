@@ -85,6 +85,25 @@ namespace CMSv2026WebApp.Services
         {
             return _appointmentRepository.GetDoctorById(doctorId);
         }
+        public Doctor GetDoctorsById(int doctorId)
+        {
+            return _appointmentRepository.GetDoctorsById(doctorId);
+        }
+
+        public Appointment GetAppointmentByPatientAndDoctor(int patientId, int doctorId)
+        {
+            return _appointmentRepository.GetAppointmentByPatientAndDoctor(patientId, doctorId);
+        }
+
+        public Appointment GetAppointmentById(int appointmentId)
+        {
+            return _appointmentRepository.GetAppointmentById(appointmentId);
+        }
+
+        public void UpdateConsultationStatus(int appointmentId, string status)
+        {
+            _appointmentRepository.UpdateConsultationStatus(appointmentId, status);
+        }
 
         public bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate)
         {

@@ -7,5 +7,7 @@ namespace CMSv2026WebApp.ViewModel
         public Patient Patient { get; set; }
         public List<Medicine> Medicines { get; set; }
         public List<LabTest> LabTests { get; set; }
+        public Appointment Appointment { get; set; }
+
     }
 }

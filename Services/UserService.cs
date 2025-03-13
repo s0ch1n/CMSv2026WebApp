@@ -7,12 +7,14 @@ namespace CMSv2026WebApp.Services
     {
         //field
         private readonly IUserRepository _userRepository;
+        private readonly IDoctorRepository _doctorRepository;
 
 
         //DI
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IDoctorRepository doctorRepository)
         {
             _userRepository = userRepository;
+            _doctorRepository = doctorRepository;
         }
 
         public Staff AuthenticateTheUser(string userName, string password)
@@ -35,14 +37,47 @@ namespace CMSv2026WebApp.Services
             return _userRepository.GetAllUsers();
         }
 
+        public Doctor GetDoctorByStaffId(int staffId)
+        {
+            return _doctorRepository.GetDoctorByStaffId(staffId);
+        }
+
+        public List<Specialization> GetAllSpecializations()
+        {
+            return _userRepository.GetAllSpecializations();
+        }
+
+        public Staff GetStaffById(int staffId)
+        {
+            return _userRepository.GetStaffById(staffId);
+
+        }
+
+        public int GetStaffIdByRoleId(int roleId)
+        {
+            return _userRepository.GetStaffIdByRoleId(roleId);
+        }
+
+        public Staff GetStaffByRoleId(int roleId)
+        {
+            return _userRepository.GetStaffByRoleId(roleId);
+        }
+
         public void InsertStaff(Staff staff)
         {
             _userRepository.AddStaff(staff);
         }
 
+
         public void RemoveStaff(int staffId)
         {
             _userRepository.DeleteStaff(staffId);
+        }
+
+        public Staff UpdateStaff(Staff staff)
+        {
+            return _userRepository.UpdateStaff(staff);
+
         }
 
         public void UpdateStaffStatus(int userId, bool isActive)

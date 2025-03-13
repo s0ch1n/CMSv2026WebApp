@@ -13,5 +13,11 @@ namespace CMSv2026WebApp.Services
         List<Staff> GetAllStaffs();
         List<Role> GetAllStaffRoles();
         void UpdateStaffStatus(int userId, bool isActive);
+        Staff GetStaffById(int staffId);
+        Staff UpdateStaff(Staff staff);
+        Doctor GetDoctorByStaffId(int staffId);
+        int GetStaffIdByRoleId(int roleId);
+        Staff GetStaffByRoleId(int roleId);
+        List<Specialization> GetAllSpecializations();
     }
 }

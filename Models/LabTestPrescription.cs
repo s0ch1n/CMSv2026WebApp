@@ -12,6 +12,9 @@ namespace CMSv2026WebApp.Models
         public int LabTestId { get; set; }  // Foreign Key for LabTest
 
         [Required, MaxLength(100)]
+        public string LabTestName { get; set; }
+
+        [Required, MaxLength(100)]
         public string LabTestValue { get; set; } = string.Empty;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;

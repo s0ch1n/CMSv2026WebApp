@@ -4,39 +4,125 @@
     ViewData["Title"] = ViewData["PageTitle"];
 }
 
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+<!-- Custom CSS -->
+<style>
+    
+
+    .login-container {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .login-image {
+        max-height: 350px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .login-form {
+        padding: 2rem;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+        }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #00bcd4);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+    .text-danger {
+        font-size: 0.875rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    .animate__fadeIn {
+        animation-duration: 0.5s;
+    }
+</style>
+
+
+
+
 <h4>Clinical Management System</h4>
 <hr />
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
-        <!-- Left Side: Image with Shadow -->
-        <div class="col-md-6 col-12 mb-3">
-            <img src="~/cms.png" alt="CMS Login" class="img-fluid shadow rounded-pill" style="max-height: 350px;" />
+        <!-- Left Side: Image -->
+        <div class="col-md-6 col-12 mb-4 animate__animated animate__fadeIn">
+            <img src="~/cms.png" alt="CMS Login" class="img-fluid shadow rounded-pill" />
         </div>
 
-        <!-- Right Side: Login Form with Shadow -->
-        <div class="col-md-6 col-12 mb-3">
-            <div class="p-4 bg-light shadow rounded">
-                <h4 class="text-center mb-3">Enter your Credentials</h4>
-                <form asp-action="Login" method="post">
-                    <div class="mb-3">
-                        <label asp-for="UserName" class="form-label"></label>
-                        <input asp-for="UserName" class="form-control" placeholder="Username" />
-                        <span asp-validation-for="UserName" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" type="password" placeholder="Password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                    </div>
-                </form>
+        <!-- Right Side: Login Form -->
+        <div class="col-md-6 col-12 mb-4">
+            <div class="login-container animate__animated animate__fadeIn animate__delay-0.5s">
+                <div class="login-form">
+                    <h4 class="text-center mb-4">Clinical Management System</h4>
+                    <h5 class="text-center mb-4 text-muted">Enter your Credentials</h5>
+                    <form asp-action="Login" method="post">
+                        <!-- Username Field -->
+                        <div class="mb-3">
+                            <label asp-for="UserName" class="form-label">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <input asp-for="UserName" class="form-control" placeholder="Enter your username" />
+                            <span asp-validation-for="UserName" class="text-danger"></span>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <input asp-for="Password" class="form-control" type="password" placeholder="Enter your password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <!-- Login Button -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 
 @section Scripts {

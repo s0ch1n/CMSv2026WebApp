@@ -1,49 +1,204 @@
 ﻿@model CMSv2026WebApp.ViewModel.PatientViewModel
+@Html.AntiForgeryToken()
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 
 @{
     ViewData["Title"] = "Patient Details";
 }
 
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Patient Information</h4>
+<!-- Toastr CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        $(document).ready(function () {
+            toastr.success('@TempData["SuccessMessage"]');
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+	<script>
+		$(document).ready(function () {
+			toastr.error('@TempData["ErrorMessage"]');
+		});
+	</script>
+}
+
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<!-- Custom CSS -->
+<style>
+    /* Custom Toastr Styles */
+    .toast-success {
+        background-color: #28a745 !important; /* Green for success */
+        color: #fff !important;
+    }
+
+    .toast-error {
+        background-color: #dc3545 !important; /* Red for error */
+        color: #fff !important;
+    }
+
+    .toast-info {
+        background-color: #17a2b8 !important; /* Blue for info */
+        color: #fff !important;
+    }
+
+    .toast-warning {
+        background-color: #ffc107 !important; /* Yellow for warning */
+        color: #000 !important; /* Black text for better contrast */
+    }
+
+    /* Medicine Suggestions Dropdown */
+    .medicine-suggestions {
+        position: absolute;
+        z-index: 1000;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 150px;
+        overflow-y: auto;
+        display: none;
+        width: 100%; /* Match input width */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+        .medicine-suggestions .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+            .medicine-suggestions .dropdown-item:hover {
+                background-color: #f8f9fa;
+            }
+
+    /* Animations */
+    .animate__animated {
+        animation-duration: 0.5s;
+    }
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #007bff, #00bcd4);
+    }
+    .card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .card-header {
+        border-bottom: none;
+    }
+    .btn {
+        transition: transform 0.2s ease-in-out;
+    }
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    .card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: box-shadow 0.3s ease-in-out;
+    }
+</style>
+
+<div class="card shadow-lg p-4 animate__animated animate__fadeIn animate__delay-0.2s position-relative">
+    <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0">Patient Information</h4>
+        <button type="button" class="btn-close text-white" aria-label="Close" onclick="redirectToIndex()"></button>
     </div>
     <div class="card-body">
-        <p><strong>Registration ID:</strong> @Model.Patient.RegistrationId</p>
-        <p><strong>Patient Name:</strong> @Model.Patient.PatientName</p>
-        <p><strong>Gender:</strong> @Model.Patient.Gender</p>
-        <p><strong>Age:</strong> @(Model.Patient.DateOfBirth != null ? (DateTime.Now.Year - Model.Patient.DateOfBirth.Year).ToString() : "N/A")</p>
-        <p><strong>Mobile Number:</strong> @Model.Patient.MobileNumber</p>
-        <p><strong>Address:</strong> @Model.Patient.Address</p>
-        <p><strong>Email:</strong> @Model.Patient.Email</p>
-        <p><strong>Blood Group:</strong> @Model.Patient.BloodGroup</p>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-3"><strong>Registration ID:</strong> <span class="text-muted">@Model.Patient.RegistrationId</span></p>
+                <p class="mb-3"><strong>Patient Name:</strong> <span class="text-muted">@Model.Patient.PatientName</span></p>
+                <p class="mb-3"><strong>Gender:</strong> <span class="text-muted">@Model.Patient.Gender</span></p>
+                <p class="mb-3"><strong>Age:</strong> <span class="text-muted">@(Model.Patient.DateOfBirth != null ? (DateTime.Now.Year - Model.Patient.DateOfBirth.Year).ToString() : "N/A")</span></p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-3"><strong>Mobile Number:</strong> <span class="text-muted">@Model.Patient.MobileNumber</span></p>
+                <p class="mb-3"><strong>Address:</strong> <span class="text-muted">@Model.Patient.Address</span></p>
+                <p class="mb-3"><strong>Email:</strong> <span class="text-muted">@Model.Patient.Email</span></p>
+                <p class="mb-3"><strong>Blood Group:</strong> <span class="text-muted">@Model.Patient.BloodGroup</span></p>
+            </div>
+        </div>
     </div>
-    <div class="card-footer">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#consultationModal">Consultation</button>
-        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#prescriptionsModal">Prescriptions</button>
-        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#labTestsModal">Lab Test Prescriptions</button>
-        <a href="@Url.Action("PatientHistory", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-warning">View Patient History</a>
-        <a href="@Url.Action("LabResults", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-success">View Lab Results</a>
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#consultationModal">
+            <i class="fas fa-comment-medical me-2"></i>Consultation
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#prescriptionsModal">
+            <i class="fas fa-prescription me-2"></i>Prescriptions
+        </button>
+        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#labTestsModal">
+            <i class="fas fa-vial me-2"></i>Lab Test Prescriptions
+        </button>
+        <a href="@Url.Action("PatientHistory", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-warning">
+            <i class="fas fa-history me-2"></i>View Patient History
+        </a>
+        <a href="@Url.Action("LabResults", "Doctor", new { patientId = Model.Patient.PatientId })" class="btn btn-success">
+            <i class="fas fa-file-medical me-2"></i>View Lab Results
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-dark dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-clipboard-check me-2"></i> Status: <span id="currentStatus">@Model.Appointment?.ConsultationStatus</span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="statusDropdown">
+                <li><a class="dropdown-item status-option" href="#" data-status="Consulted">Consulted</a></li>
+                <li><a class="dropdown-item status-option" href="#" data-status="Prescribed for Lab Test">Prescribed for Lab Test</a></li>
+            </ul>
+        </div>
     </div>
 </div>
 
 <!-- Consultation Modal -->
 <div class="modal fade" id="consultationModal" tabindex="-1" aria-labelledby="consultationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="consultationModalLabel">Consultation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Modal Header -->
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="consultationModalLabel">
+                    <i class="fas fa-comment-medical me-2"></i>Consultation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <!-- Modal Body -->
             <div class="modal-body">
-                <textarea class="form-control" id="symptomsText" rows="2" placeholder="Symptoms"></textarea>
-                <textarea class="form-control mt-2" id="diagnosisText" rows="2" placeholder="Diagnosis"></textarea>
-                <textarea class="form-control mt-2" id="notesText" rows="2" placeholder="Notes"></textarea>
+                <form>
+                    <div class="mb-3">
+                        <label for="symptomsText" class="form-label text-muted">Symptoms</label>
+                        <textarea class="form-control animate__animated animate__fadeIn" id="symptomsText" rows="3" placeholder="Enter symptoms..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="diagnosisText" class="form-label text-muted">Diagnosis</label>
+                        <textarea class="form-control animate__animated animate__fadeIn animate__delay-1s" id="diagnosisText" rows="3" placeholder="Enter diagnosis..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notesText" class="form-label text-muted">Notes</label>
+                        <textarea class="form-control animate__animated animate__fadeIn animate__delay-2s" id="notesText" rows="3" placeholder="Enter additional notes..."></textarea>
+                    </div>
+                </form>
             </div>
+            <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitConsultation()">Submit</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitConsultation()">
+                    <i class="fas fa-check me-2"></i>Submit
+                </button>
             </div>
         </div>
     </div>
@@ -51,39 +206,57 @@
 
 <!-- Prescriptions Modal -->
 <div class="modal fade" id="prescriptionsModal" tabindex="-1" aria-labelledby="prescriptionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="prescriptionsModalLabel">Prescriptions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Modal Header -->
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="prescriptionsModalLabel">
+                    <i class="fas fa-prescription me-2"></i>Prescriptions
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <!-- Modal Body -->
             <div class="modal-body">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-bordered align-middle">
+                    <thead class="table-dark">
                         <tr>
                             <th>Medicine Name</th>
                             <th>Dosage</th>
                             <th>Frequency</th>
                             <th>Duration</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="prescriptionsTableBody">
-                        @foreach (var medicine in Model.Medicines)
-                        {
-                            <tr>
-                                <td>@medicine.MedicineName</td>
-                                <td><input type="text" class="form-control" /></td>
-                                <td><input type="text" class="form-control" /></td>
-                                <td><input type="text" class="form-control" /></td>
-                            </tr>
-                        }
+                        <!-- Default Row -->
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control medicine-input" onkeyup="fetchMedicineSuggestions(this)" placeholder="Enter medicine name" />
+                                <ul class="dropdown-menu medicine-suggestions"></ul>
+                            </td>
+                            <td><input type="text" class="form-control" placeholder="e.g., 500mg" /></td>
+                            <td><input type="text" class="form-control" placeholder="e.g., 2 times a day" /></td>
+                            <td><input type="text" class="form-control" placeholder="e.g., 7 days" /></td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removePrescriptionRow(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
-                <button type="button" class="btn btn-secondary" onclick="addPrescriptionRow()">Add Row</button>
+                <button type="button" class="btn btn-secondary mt-3" onclick="addPrescriptionRow()">
+                    <i class="fas fa-plus me-2"></i>Add Medicine
+                </button>
             </div>
+            <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitPrescriptions()">Submit</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitPrescriptions()">
+                    <i class="fas fa-check me-2"></i>Submit
+                </button>
             </div>
         </div>
     </div>
@@ -91,144 +264,354 @@
 
 <!-- Lab Tests Modal -->
 <div class="modal fade" id="labTestsModal" tabindex="-1" aria-labelledby="labTestsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="labTestsModalLabel">Lab Test Prescriptions</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Modal Header -->
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="labTestsModalLabel">
+                    <i class="fas fa-vial me-2"></i>Lab Test Prescriptions
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <!-- Modal Body -->
             <div class="modal-body">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-bordered align-middle">
+                    <thead class="table-dark">
                         <tr>
                             <th>Test Name</th>
                             <th>Instructions</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="labTestsTableBody">
-                        @foreach (var labTest in Model.LabTests)
-                        {
-                            <tr>
-                                <td>@labTest.TestName</td>
-                                <td><input type="text" class="form-control" /></td>
-                            </tr>
-                        }
+                        <!-- Default Row -->
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control test-name-input" onkeyup="fetchLabTestSuggestions(this)" placeholder="Enter test name" />
+                                <ul class="dropdown-menu lab-test-suggestions"></ul>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control instruction-input" placeholder="Enter instructions" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeLabTestRow(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
-                <button type="button" class="btn btn-secondary" onclick="addLabTestRow()">Add Row</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="addLabTestRow()">
+                    <i class="fas fa-plus me-2"></i>Add Test
+                </button>
             </div>
+            <!-- Modal Footer -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitLabTests()">Submit</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitLabTests()">
+                    <i class="fas fa-save me-2"></i>Submit
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+
+
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script>
+        function redirectToIndex() {
+            window.location.href = '@Url.Action("Index", "Doctor")'; // Redirects to Index action in Doctor controller
+        }
+    </script>
+    <script>
+
+            $(document).ready(function () {
+            $(".status-option").click(function () {
+                var newStatus = $(this).data("status");
+                var appointmentId = @Model.Appointment.AppointmentId;
+
+                $.ajax({
+                    url: '@Url.Action("UpdateConsultationStatus", "Doctor")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ appointmentId: appointmentId, status: newStatus }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        $("#currentStatus").text(newStatus);
+                        toastr.success("Consultation status updated to " + newStatus);
+                    },
+                    error: function (xhr) {
+                        toastr.error(xhr.responseText || "Failed to update status. Please try again.");
+                    }
+                });
+            });
+        });
+
         var antiForgeryToken = '@Antiforgery.GetAndStoreTokens(Context).RequestToken';
+
         function submitConsultation() {
-            var symptoms = document.getElementById("symptomsText").value;
-            var diagnosis = document.getElementById("diagnosisText").value;
-            var notes = document.getElementById("notesText").value;
+            var symptoms = $("#symptomsText").val();
+            var diagnosis = $("#diagnosisText").val();
+            var notes = $("#notesText").val();
             var patientId = @Model.Patient.PatientId;
-            // Post consultation to the server
-            fetch('@Url.Action("SubmitConsultation", "Doctor")', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': antiForgeryToken
+
+            $.ajax({
+                url: '@Url.Action("SubmitConsultation", "Doctor")',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                data: JSON.stringify({ patientId, symptoms, diagnosis, notes }),
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        toastr.error("Error: " + response.message);
+                    }
                 },
-                body: JSON.stringify({ patientId, symptoms, diagnosis, notes })
-            }).then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    console.error('Error submitting consultation');
+                error: function () {
+                    toastr.error('Failed to submit consultation. Server error.');
                 }
             });
         }
 
-        function addPrescriptionRow() {
-            var tableBody = document.getElementById("prescriptionsTableBody");
-            var newRow = tableBody.insertRow();
-            newRow.innerHTML = `
-                <td><input type="text" class="form-control" /></td>
-                <td><input type="text" class="form-control" /></td>
-                <td><input type="text" class="form-control" /></td>
-                <td><input type="text" class="form-control" /></td>
+                function addPrescriptionRow() {
+            var tableBody = $("#prescriptionsTableBody");
+            var newRow = `
+                <tr class="animate__animated animate__fadeIn">
+                    <td>
+                        <input type="text" class="form-control medicine-input" onkeyup="fetchMedicineSuggestions(this)" placeholder="Enter medicine name" />
+                        <ul class="dropdown-menu medicine-suggestions"></ul>
+                    </td>
+                    <td><input type="text" class="form-control" placeholder="e.g., 500mg" /></td>
+                    <td><input type="text" class="form-control" placeholder="e.g., 2 times a day" /></td>
+                    <td><input type="text" class="form-control" placeholder="e.g., 7 days" /></td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removePrescriptionRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
+            tableBody.append(newRow);
+        }
+
+        function removePrescriptionRow(button) {
+            var row = $(button).closest("tr");
+            row.addClass("animate__animated animate__fadeOut");
+            setTimeout(() => row.remove(), 500); // Wait for animation to complete
         }
 
         function submitPrescriptions() {
-            var tableBody = document.getElementById("prescriptionsTableBody");
             var prescriptions = [];
-            for (var i = 0; i < tableBody.rows.length; i++) {
-                var row = tableBody.rows[i];
-                var prescription = {
-                    medicineName: row.cells[0].querySelector("input").value,
-                    dosage: row.cells[1].querySelector("input").value,
-                    frequency: row.cells[2].querySelector("input").value,
-                    duration: row.cells[3].querySelector("input").value
-                };
-                prescriptions.push(prescription);
+            $("#prescriptionsTableBody tr").each(function () {
+                var row = $(this);
+                var medicineName = row.find("td:eq(0) input").val().trim();
+                var dosage = row.find("td:eq(1) input").val().trim();
+                var frequency = row.find("td:eq(2) input").val().trim();
+                var duration = row.find("td:eq(3) input").val().trim();
+
+                if (medicineName !== "" && dosage !== "" && frequency !== "" && duration !== "") {
+                    prescriptions.push({
+                        medicineName,
+                        dosage,
+                        frequency,
+                        duration
+                    });
+                }
+            });
+
+            if (prescriptions.length === 0) {
+                toastr.error("Please add at least one prescription.", "Error", {
+                    closeButton: true,
+                    progressBar: true,
+                    timeOut: 5000,
+                });
+                return;
             }
+
             var patientId = @Model.Patient.PatientId;
-            // Post prescriptions to the server
-            fetch('@Url.Action("SubmitPrescriptions", "Doctor")', {
-                method: 'POST',
+
+            $.ajax({
+                url: '@Url.Action("SubmitPrescriptions", "Doctor")',
+                type: 'POST',
+                contentType: 'application/json',
                 headers: {
-                    'Content-Type': 'application/json',
                     'RequestVerificationToken': antiForgeryToken
                 },
-                body: JSON.stringify({ patientId, prescriptions })
-            }).then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    console.error('Error submitting prescriptions');
+                data: JSON.stringify({ patientId, prescriptions }),
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message, "Success", {
+                            closeButton: true,
+                            progressBar: true,
+                            timeOut: 3000,
+                        });
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        toastr.error(response.message, "Error", {
+                            closeButton: true,
+                            progressBar: true,
+                            timeOut: 5000,
+                        });
+                    }
+                },
+                error: function () {
+                    toastr.error("Failed to submit prescriptions. Please try again.", "Error", {
+                        closeButton: true,
+                        progressBar: true,
+                        timeOut: 5000,
+                    });
                 }
             });
         }
 
-        function addLabTestRow() {
-            var tableBody = document.getElementById("labTestsTableBody");
-            var newRow = tableBody.insertRow();
-            newRow.innerHTML = `
-                <td><input type="text" class="form-control" /></td>
-                <td><input type="text" class="form-control" /></td>
-            `;
+        function fetchMedicineSuggestions(input) {
+            var query = $(input).val().trim();
+            if (query.length < 2) {
+                $(input).siblings(".medicine-suggestions").hide();
+                return;
+            }
+
+            // Show loading indicator
+            var suggestions = $(input).siblings(".medicine-suggestions");
+            suggestions.html('<li class="dropdown-item text-muted">Loading...</li>').show();
+
+            $.ajax({
+                url: '@Url.Action("GetMedicineSuggestions", "Doctor")',
+                type: 'GET',
+                data: { term: query },
+                success: function (data) {
+                    suggestions.empty();
+                    if (data.length > 0) {
+                        data.forEach(function (medicine) {
+                            suggestions.append(`<li class="dropdown-item" onclick="selectMedicine(this)">${medicine}</li>`);
+                        });
+                    } else {
+                        suggestions.append('<li class="dropdown-item text-muted">No suggestions found</li>');
+                    }
+                    suggestions.show();
+                },
+                error: function () {
+                    suggestions.html('<li class="dropdown-item text-muted">Error fetching suggestions</li>').show();
+                }
+            });
         }
 
+        function selectMedicine(element) {
+            var input = $(element).closest("td").find("input");
+            input.val($(element).text());
+            $(element).parent().hide();
+        }
+
+
+
+            function addLabTestRow() {
+            const tableBody = document.getElementById('labTestsTableBody');
+            const newRow = `
+                <tr>
+                    <td>
+                        <input type="text" class="form-control test-name-input" onkeyup="fetchLabTestSuggestions(this)" placeholder="Enter test name" />
+                        <ul class="dropdown-menu lab-test-suggestions"></ul>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control instruction-input" placeholder="Enter instructions" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeLabTestRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', newRow);
+        }
+
+        // Remove a lab test row
+        function removeLabTestRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        function fetchLabTestSuggestions(input) {
+            var term = $(input).val();
+            if (term.length < 2) return;
+
+            $.ajax({
+                url: '@Url.Action("GetLabTestSuggestions", "Doctor")',
+                type: 'GET',
+                data: { term },
+                success: function (data) {
+                    var dropdown = $(input).siblings(".lab-test-suggestions");
+                    dropdown.empty().hide(); // Clear previous results
+
+                    if (data.length === 0) return;
+
+                    data.forEach(function (test) {
+                        dropdown.append(`<li><a class="dropdown-item" href="#" onclick="selectLabTest(this, '${test}')">${test}</a></li>`);
+                    });
+
+                    dropdown.show().css({
+                        position: "absolute",
+                        top: $(input).position().top + $(input).outerHeight(),
+                        left: $(input).position().left,
+                        width: $(input).outerWidth()
+                    });
+                }
+            });
+        }
+
+        function selectLabTest(element, testName) {
+            var input = $(element).closest("td").find(".test-name-input");
+            input.val(testName);
+            $(element).closest(".lab-test-suggestions").hide();
+        }
+
+        // Prevent dropdown from closing too soon
+        $(document).on("mousedown", ".dropdown-item", function (e) {
+            e.preventDefault();
+            selectLabTest(this, $(this).text());
+        });
+
         function submitLabTests() {
-            var tableBody = document.getElementById("labTestsTableBody");
+            var tableBody = $("#labTestsTableBody");
             var labTests = [];
-            for (var i = 0; i < tableBody.rows.length; i++) {
-                var row = tableBody.rows[i];
+
+            tableBody.find("tr").each(function () {
+                var row = $(this);
                 var labTest = {
-                    testName: row.cells[0].querySelector("input").value,
-                    instructions: row.cells[1].querySelector("input").value
+                    LabTestName: row.find(".test-name-input").val(),
+                    LabTestValue: row.find(".instruction-input").val()
                 };
                 labTests.push(labTest);
-            }
+            });
+
             var patientId = @Model.Patient.PatientId;
-            // Post lab tests to the server
-            fetch('@Url.Action("SubmitLabTests", "Doctor")', {
-                method: 'POST',
+
+            $.ajax({
+                url: '@Url.Action("SubmitLabTests", "Doctor")',
+                type: 'POST',
+                contentType: 'application/json',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': antiForgeryToken
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                 },
-                body: JSON.stringify({ patientId, labTests })
-            }).then(response => {
-                if (response.ok) {
+                data: JSON.stringify({ PatientId: patientId, LabTests: labTests }),
+                success: function () {
                     location.reload();
-                } else {
+                },
+                error: function () {
                     console.error('Error submitting lab tests');
                 }
             });
         }
     </script>
 }
+
 

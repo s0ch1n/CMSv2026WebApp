@@ -15,6 +15,9 @@ namespace CMSv2026WebApp.Repositories
         void ReferPatient(Referral referral);
         List<Medicine> GetAllMedicines();
         List<LabTest> GetAllLabTests();
+        Doctor GetDoctorByStaffId(int staffId);
+        List<string> GetMedicineNamesByTerm(string term);
+        int? GetLabTestIdByName(string testName);
 
     }
 }

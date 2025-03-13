@@ -40,40 +40,86 @@ namespace CMSv2026WebApp.Repositories
 
         public void AddConsultation(Consultation consultation)
         {
-            var query = @"
-                INSERT INTO Consultations (Symptoms, Diagnosis, Notes, CreatedDate, AppointmentId, IsActive)
-                VALUES (@Symptoms, @Diagnosis, @Notes, @CreatedDate, @AppointmentId, @IsActive)";
-
-            using (var connection = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                connection.Open();
-                connection.Execute(query, consultation);
+                string query = @"
+                INSERT INTO Consultation (Symptoms, Diagnosis, Notes, CreatedDate, AppointmentId)
+                VALUES (@Symptoms, @Diagnosis, @Notes, @CreatedDate, @AppointmentId)";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", consultation.AppointmentId);
+                    cmd.Parameters.AddWithValue("@Symptoms", consultation.Symptoms);
+                    cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@Diagnosis", consultation.Diagnosis);
+                    cmd.Parameters.AddWithValue("@Notes", consultation.Notes ?? (object)DBNull.Value);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
         public void AddPrescription(MedicinePrescription prescription)
         {
-            var query = @"
-                INSERT INTO MedicinePrescriptions (MedicineId, Dosage, Frequency, Duration, CreatedDate, AppointmentId)
-                VALUES (@MedicineId, @Dosage, @Frequency, @Duration, @CreatedDate, @AppointmentId)";
-
-            using (var connection = new SqlConnection(_connectionString))
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                connection.Open();
-                connection.Execute(query, prescription);
+                conn.Open();
+
+                // Fetch MedicineId from Medicine table using MedicineName
+                string fetchMedicineQuery = "SELECT MedicineId FROM Medicine WHERE MedicineName = @MedicineName";
+                int medicineId;
+
+                using (SqlCommand fetchCmd = new SqlCommand(fetchMedicineQuery, conn))
+                {
+                    fetchCmd.Parameters.AddWithValue("@MedicineName", prescription.Medicine.MedicineName);
+                    var result = fetchCmd.ExecuteScalar();
+                    if (result == null)
+                    {
+                        throw new Exception($"Medicine '{prescription.Medicine.MedicineName}' not found in the database.");
+                    }
+                    medicineId = Convert.ToInt32(result);
+                }
+
+                // Insert into MedicinePrescription table
+                string insertQuery = @"
+                INSERT INTO MedicinePrescription (MedicineId, MedicineName, Dosage, Frequency, Duration, CreatedDate, AppointmentId)
+                VALUES (@MedicineId, @MedicineName, @Dosage, @Frequency, @Duration, @CreatedDate, @AppointmentId)";
+
+                using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@AppointmentId", prescription.AppointmentId);
+                    cmd.Parameters.AddWithValue("@MedicineName", prescription.Medicine.MedicineName);
+                    cmd.Parameters.AddWithValue("@MedicineId", medicineId);
+                    cmd.Parameters.AddWithValue("@Dosage", prescription.Dosage);
+                    cmd.Parameters.AddWithValue("@Frequency", prescription.Frequency);
+                    cmd.Parameters.AddWithValue("@Duration", prescription.Duration);
+                    cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
+
 
         public void AddLabTest(LabTestPrescription labTest)
         {
             var query = @"
-                INSERT INTO LabTestPrescriptions (LabTestId, LabTestValue, CreatedDate, Remarks, AppointmentId)
-                VALUES (@LabTestId, @LabTestValue, @CreatedDate, @Remarks, @AppointmentId)";
+        INSERT INTO LabTestPrescription (LabTestId, LabTestName, LabTestValue, CreatedDate, Remarks, AppointmentId)
+        VALUES (@LabTestId, @LabTestName, @LabTestValue, @CreatedDate, @Remarks, @AppointmentId)";
 
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-                connection.Execute(query, labTest);
+                connection.Execute(query, new
+                {
+                    labTest.LabTestId,
+                    labTest.LabTestName,
+                    labTest.LabTestValue,
+                    labTest.CreatedDate,
+                    labTest.Remarks,
+                    labTest.AppointmentId
+                });
             }
         }
 
