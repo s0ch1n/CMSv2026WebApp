@@ -38,7 +38,13 @@ namespace CMSv2026WebApp.Controllers
         [HttpGet]
         public IActionResult AddPatient()
         {
-            return View();
+            // Generate the RegistrationId
+            string registrationId = _patientService.GenerateRegistrationId();
+
+            // Create a Patient object with the generated RegistrationId
+            var patient = new Patient { RegistrationId = registrationId };
+
+            return View(patient);
         }
 
         [HttpPost]
@@ -46,8 +52,21 @@ namespace CMSv2026WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                _patientService.AddPatient(patient);
-                return RedirectToAction("Index");
+                try
+                {
+                    _patientService.AddPatient(patient);
+                    TempData["SuccessMessage"] = "Patient added successfully!";
+                    TempData["ShowToast"] = true;
+                    return View(patient); // Return the same view to display the toast
+                }
+                catch (ApplicationException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, "An error occurred while adding the patient. Please try again.");
+                }
             }
             return View(patient);
         }
@@ -68,8 +87,21 @@ namespace CMSv2026WebApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                _patientService.UpdatePatient(patient);
-                return RedirectToAction("Index");
+                try
+                {
+                    _patientService.UpdatePatient(patient);
+                    TempData["SuccessMessage"] = "Patient updated successfully!";
+                    TempData["ShowToast"] = true;
+                    return RedirectToAction("Index"); // ✅ Redirects to Index after successful update
+                }
+                catch (ApplicationException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, "An error occurred while updating the patient. Please try again.");
+                }
             }
             return View(patient);
         }

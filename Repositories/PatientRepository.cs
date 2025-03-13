@@ -122,6 +122,27 @@ namespace CMSv2026WebApp.Repositories
                 });
             }
         }
+        public string GenerateRegistrationId()
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    using (var cmd = new SqlCommand("SELECT 'PAT' + RIGHT('0000' + CAST(ISNULL(MAX(CAST(SUBSTRING(RegistrationId, 4, LEN(RegistrationId)) AS INT)), 0) + 1 AS VARCHAR(3)), 3) FROM Patient", conn))
+                    {
+                        string registrationId = cmd.ExecuteScalar() as string;
+                        return registrationId;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                // Log the exception
+                throw;
+            }
+        }
 
         // New methods based on ReceptionistController
         public int AddPatient(Patient patient)

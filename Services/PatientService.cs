@@ -60,6 +60,9 @@ namespace CMSv2026WebApp.Services
            _patientRepository.AddPatient(patient);
         }
 
-        
+        public string GenerateRegistrationId()
+        {
+         return _patientRepository.GenerateRegistrationId();
+        }
     }
 }

@@ -14,8 +14,9 @@ namespace CMSv2026WebApp.Services
         void AddConsultations(Consultation consultation);
         void AddPrescriptions(MedicinePrescription prescription);
         void AddLabTests(LabTestPrescription labTest);
+        string GenerateRegistrationId();
 
-       
+
 
     }
 }
