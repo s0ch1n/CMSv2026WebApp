@@ -19,6 +19,7 @@ namespace CMSv2026WebApp.Repositories
         Staff GetStaffByRoleId(int roleId);
         int GetStaffIdByRoleId(int roleId);
         List<Specialization> GetAllSpecializations();
+        Role GetRoleById(int roleId);
 
     }
 }

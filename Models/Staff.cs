@@ -46,6 +46,13 @@ namespace CMSv2026WebApp.Models
         public int? RoleId { get; set; }
         public Role? Role { get; set; }
 
+        [ForeignKey("Specialization")]
+        public int? SpecializationId { get; set; }  // Optional (Only for Doctor)
+
+        public Specialization? Specialization { get; set; }
+
+        public decimal? ConsultationFee { get; set; } // Optional (Only for Doctor)
+
         public bool IsActive { get; set; } = true;
 
         // Navigation property for Doctor details (only applicable if staff is a doctor)

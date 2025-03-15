@@ -13,6 +13,27 @@ namespace CMSv2026WebApp.Repositories
             _connectionString = configuration.GetConnectionString("ConnStrMVC");
         }
 
+        public void InsertDoctor(Doctor doctor)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = @"
+                INSERT INTO Doctors (StaffId, SpecializationId, ConsultationFee, IsActive) 
+                VALUES (@StaffId, @SpecializationId, @ConsultationFee, @IsActive)";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@StaffId", doctor.StaffId);
+                    cmd.Parameters.AddWithValue("@SpecializationId", doctor.SpecializationId);
+                    cmd.Parameters.AddWithValue("@ConsultationFee", doctor.ConsultationFee);
+                    cmd.Parameters.AddWithValue("@IsActive", doctor.IsActive);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         public List<Appointment> GetTodaysAppointments(int doctorId)
         {
             var appointments = new List<Appointment>();
@@ -20,13 +41,15 @@ namespace CMSv2026WebApp.Repositories
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string query = @"
-        SELECT * FROM Appointment
-        WHERE DoctorId = @DoctorId 
-        AND CAST(AppointmentDate AS DATE) = CAST(GETDATE() AS DATE)";
+                                SELECT A.*
+                                FROM Appointment A
+                                JOIN Doctors D ON A.DoctorId = D.DoctorId
+                                WHERE D.StaffId = @StaffId
+                                AND CAST(A.AppointmentDate AS DATE) = CAST(GETDATE() AS DATE)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
+                    cmd.Parameters.AddWithValue("@StaffId", doctorId);
                     conn.Open();
 
                     using (SqlDataReader reader = cmd.ExecuteReader())

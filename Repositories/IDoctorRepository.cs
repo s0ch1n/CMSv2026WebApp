@@ -18,6 +18,7 @@ namespace CMSv2026WebApp.Repositories
         Doctor GetDoctorByStaffId(int staffId);
         List<string> GetMedicineNamesByTerm(string term);
         int? GetLabTestIdByName(string testName);
+        void InsertDoctor(Doctor doctor);
 
     }
 }

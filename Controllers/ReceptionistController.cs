@@ -29,7 +29,7 @@ namespace CMSv2026WebApp.Controllers
             {
                 patients = _patientService.SearchPatients(searchTerm);
             }
-            TempData["SuccessMessage"] = "Patient added successfully!";
+            //TempData["SuccessMessage"] = "Patient added successfully!";
             TempData["ShowToast"] = true;  // Ensures the toast shows only once
 
             return View(patients);
@@ -55,8 +55,9 @@ namespace CMSv2026WebApp.Controllers
                 try
                 {
                     _patientService.AddPatient(patient);
-                    TempData["SuccessMessage"] = "Patient added successfully!";
+                    //TempData["SuccessMessage"] = "Patient added successfully!";
                     TempData["ShowToast"] = true;
+                    return RedirectToAction("Index");
                     return View(patient); // Return the same view to display the toast
                 }
                 catch (ApplicationException ex)

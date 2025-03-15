@@ -7,7 +7,10 @@ namespace CMSv2026WebApp.ViewModel
     public class UserRegistrationViewModel
     {
         // Staff Details
-        public Staff Staff { get; set; } = new Staff();
+        public Staff Staff { get; set; }
+
+        // Doctor Details (if applicable)
+        //public Doctor Doctor { get; set; }
 
         // List of all staff members
         public List<Staff> Staffs { get; set; } = new List<Staff>();

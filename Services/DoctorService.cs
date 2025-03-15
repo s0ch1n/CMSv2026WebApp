@@ -73,5 +73,10 @@ namespace CMSv2026WebApp.Services
         {
             return _doctorRepository.GetLabTestIdByName(testName);
         }
+
+        public void InsertDoctor(Doctor doctor)
+        {
+            _doctorRepository.InsertDoctor(doctor);
+        }
     }
 }

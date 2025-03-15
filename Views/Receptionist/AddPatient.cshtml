@@ -4,6 +4,9 @@
     ViewData["Title"] = "Add Patient";
 }
 
+
+
+
 <h2>Add Patient</h2>
 
 <!-- Toast Notification (Only Appears After Successful Save) -->
@@ -27,7 +30,7 @@
     </div>
     <div class="form-group">
         <label asp-for="DateOfBirth"></label>
-        <input asp-for="DateOfBirth" type="date" class="form-control" required min="1965-01-01" max="2021-12-31" />
+        <input asp-for="DateOfBirth" id="DateOfBirth" type="date" class="form-control" required />
         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
     </div>
     <div class="form-group">
@@ -41,7 +44,8 @@
     </div>
     <div class="form-group">
         <label asp-for="MobileNumber"></label>
-        <input asp-for="MobileNumber" class="form-control" required />
+        <input asp-for="MobileNumber" id="MobileNumber" class="form-control"
+               pattern="[6-9]\d{9}" title="Mobile number must start with 6, 7, 8, or 9 and be exactly 10 digits" maxlength="10" required />
         <span asp-validation-for="MobileNumber" class="text-danger"></span>
     </div>
     <div class="form-group">
@@ -61,7 +65,17 @@
     </div>
     <div class="form-group">
         <label asp-for="BloodGroup"></label>
-        <input asp-for="BloodGroup" class="form-control" required />
+        <select asp-for="BloodGroup" class="form-control" required>
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+        </select>
         <span asp-validation-for="BloodGroup" class="text-danger"></span>
     </div>
     <div class="form-group">
@@ -75,6 +89,31 @@
 
 <!-- JavaScript to show the toast notification only when redirected -->
 <script>
+     document.addEventListener("DOMContentLoaded", function () {
+        var today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+        var dobInput = document.getElementById("DateOfBirth");
+
+        dobInput.value = today; // Set default value to today
+        dobInput.max = today; // Restrict future dates
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var mobileInput = document.getElementById("MobileNumber");
+
+        // Prevent entering non-numeric values
+        mobileInput.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "").slice(0, 10);
+        });
+
+        // Ensure max 10 digits on paste
+        mobileInput.addEventListener("paste", function (e) {
+            let pastedData = (e.clipboardData || window.clipboardData).getData("text");
+            if (!/^\d{1,10}$/.test(pastedData)) {
+                e.preventDefault();
+            }
+        });
+    });
+
     document.addEventListener("DOMContentLoaded", function () {
         var toastElement = document.getElementById("toastMessage");
         if (toastElement) {

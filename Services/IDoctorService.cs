@@ -17,5 +17,6 @@ namespace CMSv2026WebApp.Services
         List<LabTest> GetAllLabTests();
         List<string> GetMedicineNamesByTerm(string term);
         int? GetLabTestIdByName(string testName);
+        void InsertDoctor(Doctor doctor);
     }
 }

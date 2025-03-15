@@ -7,29 +7,25 @@ namespace CMSv2026WebApp.Controllers
 {
     public class AdminController : Controller
     {
-        // Fields
+        //Fields
         private readonly IUserService _userService;
 
-        // DI
+        //DI
         public AdminController(IUserService userService)
         {
             _userService = userService;
         }
 
-        // GET: Admin/Index
+        //GET
         public IActionResult Index()
         {
             return View();
         }
-
-        // GET: Admin/StaffList
         public IActionResult StaffList()
         {
             var staffList = _userService.GetAllStaffs();
             return View(staffList);
         }
-
-        // GET: Admin/StaffManagement
         public IActionResult StaffManagement()
         {
             var viewModel = new UserRegistrationViewModel
@@ -44,18 +40,12 @@ namespace CMSv2026WebApp.Controllers
             ViewBag.Specializations = viewModel.Specializations;
             return View(viewModel);
         }
-
-        // POST: Admin/RegisterNewStaff
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RegisterNewStaff(UserRegistrationViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
-                viewModel.Roles = _userService.GetAllStaffRoles();
-                viewModel.Specializations = _userService.GetAllSpecializations();
-                ViewBag.Roles = viewModel.Roles;
-                ViewBag.Specializations = viewModel.Specializations;
                 return View("StaffManagement", viewModel); // Return view with validation errors
             }
 
@@ -71,11 +61,13 @@ namespace CMSv2026WebApp.Controllers
                 return RedirectToAction("StaffManagement");
             }
         }
+        // GET: Admin/EditStaff/13
 
-        // POST: Admin/ToggleUserStatus
+        // Controller Action - Get Staff Details for Editing
         [HttpPost]
         public IActionResult ToggleUserStatus(int staffId, bool isActive)
         {
+            Console.WriteLine($"Received staffId: {staffId}, isActive: {isActive}"); // Debugging
             var staff = _userService.GetStaffById(staffId);
 
             if (staff == null)
@@ -88,48 +80,35 @@ namespace CMSv2026WebApp.Controllers
 
             return Json(new { success = true, message = "Status updated successfully!" });
         }
-
-        // GET: Admin/EditStaff
+        // Edit Staff Page
         [HttpGet]
         public IActionResult EditStaff(int staffId)
         {
-            try
+            var staff = _userService.GetStaffById(staffId);
+            if (staff == null)
             {
-                var staff = _userService.GetStaffById(staffId);
-                if (staff == null)
-                {
-                    TempData["ErrorMessage"] = "Staff not found!";
-                    return RedirectToAction("StaffManagement");
-                }
-
-                var viewModel = new UserRegistrationViewModel
-                {
-                    Staff = staff,
-                    Roles = _userService.GetAllStaffRoles(),
-                    Specializations = _userService.GetAllSpecializations()
-                };
-
-                ViewBag.Roles = viewModel.Roles;
-                ViewBag.Specializations = viewModel.Specializations;
-                return Json(new { staff = viewModel.Staff });
+                return NotFound();
             }
-            catch (Exception ex)
+
+            var viewModel = new UserRegistrationViewModel
             {
-                // Use logging instead of Console.WriteLine
-                Console.WriteLine($"Error in EditStaff action: {ex.Message}");
-                TempData["ErrorMessage"] = "An unexpected error occurred. Please try again later.";
-                return RedirectToAction("StaffManagement");
-            }
+                Staff = staff,
+                Roles = _userService.GetAllStaffRoles()
+            };
+
+            ViewBag.Roles = _userService.GetAllStaffRoles();
+
+            return View(viewModel);
         }
 
-        // POST: Admin/UpdateStaff
         [HttpPost]
         [ValidateAntiForgeryToken]
+
         public IActionResult UpdateStaff([FromBody] UserRegistrationViewModel viewModel)
         {
             if (viewModel == null || viewModel.Staff == null || viewModel.Staff.StaffId == 0)
             {
-                return Json(new { success = false, message = "Invalid staff details provided!" });
+                return Json(new { success = false, message = "Invalid input data!" });
             }
 
             var existingStaff = _userService.GetStaffById(viewModel.Staff.StaffId);
@@ -138,34 +117,47 @@ namespace CMSv2026WebApp.Controllers
                 return Json(new { success = false, message = "Staff not found!" });
             }
 
-            // Update fields safely
-            existingStaff.FullName = !string.IsNullOrEmpty(viewModel.Staff.FullName) ? viewModel.Staff.FullName : existingStaff.FullName;
-            existingStaff.Gender = !string.IsNullOrEmpty(viewModel.Staff.Gender) ? viewModel.Staff.Gender : existingStaff.Gender;
-            existingStaff.DateOfBirth = viewModel.Staff.DateOfBirth != default ? viewModel.Staff.DateOfBirth : existingStaff.DateOfBirth;
-            existingStaff.DateOfJoining = viewModel.Staff.DateOfJoining != default ? viewModel.Staff.DateOfJoining : existingStaff.DateOfJoining;
-            existingStaff.MobileNumber = !string.IsNullOrEmpty(viewModel.Staff.MobileNumber) ? viewModel.Staff.MobileNumber : existingStaff.MobileNumber;
-            existingStaff.UserName = !string.IsNullOrEmpty(viewModel.Staff.UserName) ? viewModel.Staff.UserName : existingStaff.UserName;
-            existingStaff.Password = !string.IsNullOrEmpty(viewModel.Staff.Password) ? viewModel.Staff.Password : existingStaff.Password;
-            existingStaff.RoleId = viewModel.Staff.RoleId ?? existingStaff.RoleId;
-            existingStaff.EmailAddress = !string.IsNullOrEmpty(viewModel.Staff.EmailAddress) ? viewModel.Staff.EmailAddress : existingStaff.EmailAddress;
-            existingStaff.Qualification = !string.IsNullOrEmpty(viewModel.Staff.Qualification) ? viewModel.Staff.Qualification : existingStaff.Qualification;
-            existingStaff.IsActive = viewModel.Staff.IsActive;
+            // Update only the fields that are provided
+            if (!string.IsNullOrEmpty(viewModel.Staff.FullName))
+                existingStaff.FullName = viewModel.Staff.FullName;
 
-            if (viewModel.Staff.RoleId == 2)
-            {
-                existingStaff.Doctor.SpecializationId = viewModel.Staff.Doctor.SpecializationId;
-                existingStaff.Doctor.ConsultationFee = viewModel.Staff.Doctor.ConsultationFee;
-            }
+            if (!string.IsNullOrEmpty(viewModel.Staff.Gender))
+                existingStaff.Gender = viewModel.Staff.Gender;
 
-            try
+            if (viewModel.Staff.DateOfBirth != default)
+                existingStaff.DateOfBirth = viewModel.Staff.DateOfBirth;
+
+            if (!string.IsNullOrEmpty(viewModel.Staff.MobileNumber))
+                existingStaff.MobileNumber = viewModel.Staff.MobileNumber;
+
+            if (viewModel.Staff.RoleId.HasValue)
+                existingStaff.RoleId = viewModel.Staff.RoleId.Value;
+
+            existingStaff.IsActive = viewModel.Staff.IsActive; // Always update IsActive
+
+            var updatedStaff = _userService.UpdateStaff(existingStaff);
+            if (updatedStaff != null)
             {
-                _userService.UpdateStaff(existingStaff);
                 return Json(new { success = true, message = "Staff details updated successfully!" });
             }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error updating staff: " + ex.Message });
-            }
+
+            return Json(new { success = false, message = "Failed to update staff details!" });
         }
+
+        //[HttpPost("DeactivateStaff/{staffId}")]
+        //public IActionResult DeactivateStaff(int staffId)
+        //{
+        //    bool result = _userService.DeactivateStaff(staffId);
+        //    if (result)
+        //    {
+        //        return Ok("Staff member successfully deactivated.");
+        //    }
+        //    else
+        //    {
+        //        return BadRequest("Failed to deactivate staff.");
+        //    }
+        //}
+
+
     }
 }

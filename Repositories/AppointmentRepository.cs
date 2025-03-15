@@ -391,14 +391,14 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
-
-        public List<Appointment> GetTodaysAppointments()
+        public List<Appointment> GetTodaysAppointmentsForDoctor(int doctorId)
         {
             using (var conn = new SqlConnection(_connectionString))
             {
-                using (var cmd = new SqlCommand("sp_GetTodaysAppointments", conn))
+                using (var cmd = new SqlCommand("sp_GetTodaysAppointmentsForDoctor", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@DoctorId", doctorId);
                     cmd.Parameters.AddWithValue("@Today", DateTime.Today);
 
                     conn.Open();
@@ -447,8 +447,7 @@ namespace CMSv2026WebApp.Repositories
                     }
                 }
             }
-        }
-
+        } 
 
     }
 }

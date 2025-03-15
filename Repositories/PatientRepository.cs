@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Data;
 
 namespace CMSv2026WebApp.Repositories
 {
@@ -287,5 +288,90 @@ namespace CMSv2026WebApp.Repositories
             return null;
         }
 
+        public List<Patient> GetPatientsConsultedByDoctor(int doctorId)
+        {
+            var patients = new List<Patient>();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string query = @"
+            SELECT DISTINCT P.*
+            FROM Patient P
+            INNER JOIN Appointment A ON P.PatientId = A.PatientId
+            WHERE A.DoctorId = @DoctorId";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DoctorId", doctorId);
+
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            patients.Add(new Patient
+                            {
+                                PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                PatientName = reader.GetString(reader.GetOrdinal("PatientName")),
+                                DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                                Gender = reader.GetString(reader.GetOrdinal("Gender")),
+                                MobileNumber = reader.GetString(reader.GetOrdinal("MobileNumber")),
+                                Address = reader.GetString(reader.GetOrdinal("Address")),
+                                RegistrationId = reader.GetString(reader.GetOrdinal("RegistrationId")),
+                                BloodGroup = reader.GetString(reader.GetOrdinal("BloodGroup")),
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return patients;
+        }
+
+        public List<Patient> SearchConsultedPatientsByDoctor(int doctorId, string query)
+        {
+            var patients = new List<Patient>();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+            SELECT DISTINCT P.*
+            FROM Patient P
+            INNER JOIN Appointment A ON P.PatientId = A.PatientId
+            WHERE A.DoctorId = @DoctorId AND A.ConsultationStatus = 'Consulted'
+            AND (P.PatientName LIKE @Query OR P.RegistrationId LIKE @Query)";
+
+                using (var command = new SqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@DoctorId", doctorId);
+                    command.Parameters.AddWithValue("@Query", "%" + query + "%");
+
+                    connection.Open();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            patients.Add(new Patient
+                            {
+                                PatientId = reader.GetInt32(reader.GetOrdinal("PatientId")),
+                                PatientName = reader.GetString(reader.GetOrdinal("PatientName")),
+                                DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                                Gender = reader.GetString(reader.GetOrdinal("Gender")),
+                                MobileNumber = reader.GetString(reader.GetOrdinal("MobileNumber")),
+                                Address = reader.GetString(reader.GetOrdinal("Address")),
+                                RegistrationId = reader.GetString(reader.GetOrdinal("RegistrationId")),
+                                BloodGroup = reader.GetString(reader.GetOrdinal("BloodGroup")),
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return patients;
+        }
     }
 }

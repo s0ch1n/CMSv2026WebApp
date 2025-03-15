@@ -4,148 +4,254 @@
     ViewData["Title"] = "Book Appointment";
 }
 
-<h1>Book Appointment</h1>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<!-- Custom CSS -->
+<style>
+    body {
+        background: #f8f9fa;
+    }
 
-@if (Model == null)
-{
-    <div class="alert alert-danger">
-        Patient not found.
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: #fff;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    .alert-danger {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h4 class="card-title mb-0">
+                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+            </h4>
+        </div>
+        <div class="card-body">
+            @if (Model == null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>Patient not found.
+                </div>
+            }
+            else
+            {
+                <div id="errorMessage" class="alert alert-danger mt-3" style="display:none;">
+                    <i class="fas fa-exclamation-circle me-2"></i><span id="errorText"></span>
+                </div>
+
+                <form asp-action="BookAppointment" method="post">
+                    <input type="hidden" asp-for="PatientId" />
+
+                    <!-- Patient Name -->
+                    <div class="form-group">
+                        <label>Patient Name</label>
+                        <input type="text" class="form-control" value="@Model.PatientName" readonly />
+                    </div>
+
+                    <!-- Select Department -->
+                    <div class="form-group">
+                        <label>Select Department</label>
+                        <select id="specialization" class="form-control" onchange="loadDoctors()">
+                            <option value="">-- Select Department --</option>
+                            @if (ViewBag.Specializations != null)
+                            {
+                                foreach (var specialization in ViewBag.Specializations)
+                                {
+                                    <option value="@specialization.SpecializationId">@specialization.SpecializationName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Select Doctor -->
+                    <div class="form-group">
+                        <label>Select Doctor</label>
+                        <select id="doctor" name="doctorId" class="form-control" disabled>
+                            <option value="">-- Select Doctor --</option>
+                        </select>
+                    </div>
+
+                    <!-- Appointment Date -->
+                    <div class="form-group">
+                        <label>Appointment Date</label>
+                        <select id="appointmentDate" name="appointmentDate" class="form-control" required onchange="loadTimeSlots()">
+                            <option value="">-- Select Date --</option>
+                            <option value="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dd MMM yyyy") (Today)</option>
+                            <option value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(1).ToString("dd MMM yyyy") (Tomorrow)</option>
+                            <option value="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(2).ToString("dd MMM yyyy") (Day After Tomorrow)</option>
+                        </select>
+                    </div>
+
+                    <!-- Available Time Slots -->
+                    <div class="form-group">
+                        <label>Available Time Slots</label>
+                        <select id="timeSlot" name="appointmentTime" class="form-control" required disabled>
+                            <option value="">-- Select Time Slot --</option>
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calendar-check me-2"></i>Book Appointment
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            }
+        </div>
     </div>
-}
-else
-{
-    <div id="errorMessage" class="alert alert-danger mt-3" style="display:none;"></div>
+</div>
 
-    <form asp-action="BookAppointment" method="post">
-        <input type="hidden" asp-for="PatientId" />
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-        <div class="form-group">
-            <label>Patient Name</label>
-            <input type="text" class="form-control" value="@Model.PatientName" readonly />
-        </div>
+<script>
+    function loadDoctors() {
+        const specializationId = document.getElementById("specialization").value;
+        const doctorDropdown = document.getElementById("doctor");
 
-        <div class="form-group">
-            <label>Select Department</label>
-            <select id="specialization" class="form-control" onchange="loadDoctors()">
-                <option value="">-- Select Department --</option>
-                @if (ViewBag.Specializations != null)
-                {
-                    foreach (var specialization in ViewBag.Specializations)
-                    {
-                        <option value="@specialization.SpecializationId">@specialization.SpecializationName</option>
-                    }
-                }
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Select Doctor</label>
-            <select id="doctor" name="doctorId" class="form-control" disabled>
-                <option value="">-- Select Doctor --</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Appointment Date</label>
-            <select id="appointmentDate" name="appointmentDate" class="form-control" required onchange="loadTimeSlots()">
-                <option value="">-- Select Date --</option>
-                <option value="@DateTime.Today.ToString("yyyy-MM-dd")">@DateTime.Today.ToString("dd MMM yyyy") (Today)</option>
-                <option value="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(1).ToString("dd MMM yyyy") (Tomorrow)</option>
-                <option value="@DateTime.Today.AddDays(2).ToString("yyyy-MM-dd")">@DateTime.Today.AddDays(2).ToString("dd MMM yyyy") (Day After Tomorrow)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Available Time Slots</label>
-            <select id="timeSlot" name="appointmentTime" class="form-control" required disabled>
-                <option value="">-- Select Time Slot --</option>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Book Appointment</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </form>
-}
-
-@section Scripts {
-    <script>
-        function loadDoctors() {
-            const specializationId = document.getElementById("specialization").value;
-            const doctorDropdown = document.getElementById("doctor");
-
-            if (specializationId) {
-                const xhr = new XMLHttpRequest();
-                xhr.open("GET", `/Receptionist/GetAvailableDoctors?specializationId=${specializationId}`, false);
-                xhr.send();
-
-                if (xhr.status === 200) {
-                    const data = JSON.parse(xhr.responseText);
-                    doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
-                    data.forEach(doctor => {
-                        doctorDropdown.innerHTML += `<option value="${doctor.doctorId}">${doctor.name}</option>`;
-                    });
-                    doctorDropdown.disabled = false;
-                } else {
-                    console.error("Error fetching doctors:", xhr.statusText);
-                    doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
-                    doctorDropdown.disabled = true;
-                }
-            } else {
-                doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
-                doctorDropdown.disabled = true;
-            }
-        }
-
-        function loadTimeSlots() {
-            const doctorId = document.getElementById("doctor").value;
-            const appointmentDate = document.getElementById("appointmentDate").value;
-            const timeSlotDropdown = document.getElementById("timeSlot");
-
-            if (doctorId && appointmentDate) {
-                // Check for existing appointments
-                checkExistingAppointment(doctorId, appointmentDate);
-
-                const xhr = new XMLHttpRequest();
-                xhr.open("GET", `/Receptionist/GetAvailableTimeSlots?doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
-                xhr.send();
-
-                if (xhr.status === 200) {
-                    const data = JSON.parse(xhr.responseText);
-                    timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
-                    data.forEach(slot => {
-                        timeSlotDropdown.innerHTML += `<option value="${slot.time}">${slot.time}</option>`;
-                    });
-                    timeSlotDropdown.disabled = false;
-                } else {
-                    console.error("Error fetching time slots:", xhr.statusText);
-                    timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
-                    timeSlotDropdown.disabled = true;
-                }
-            } else {
-                timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
-                timeSlotDropdown.disabled = true;
-            }
-        }
-
-        function checkExistingAppointment(doctorId, appointmentDate) {
-            const patientId = document.querySelector("input[name='PatientId']").value; // Get the patient ID from the hidden input
-            const errorMessageDiv = document.getElementById("errorMessage");
-
+        if (specializationId) {
             const xhr = new XMLHttpRequest();
-            xhr.open("GET", `/Receptionist/CheckExistingAppointment?patientId=${patientId}&doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
+            xhr.open("GET", `/Receptionist/GetAvailableDoctors?specializationId=${specializationId}`, false);
             xhr.send();
 
             if (xhr.status === 200) {
                 const data = JSON.parse(xhr.responseText);
-                if (data.hasExistingAppointment) {
-                    errorMessageDiv.textContent = "You already have an appointment with this doctor on the selected date. Please select another date.";
-                    errorMessageDiv.style.display = "block";
-                } else {
-                    errorMessageDiv.style.display = "none";
-                }
+                doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                data.forEach(doctor => {
+                    doctorDropdown.innerHTML += `<option value="${doctor.doctorId}">${doctor.name}</option>`;
+                });
+                doctorDropdown.disabled = false;
             } else {
-                console.error("Error checking existing appointment:", xhr.statusText);
+                console.error("Error fetching doctors:", xhr.statusText);
+                doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+                doctorDropdown.disabled = true;
             }
+        } else {
+            doctorDropdown.innerHTML = '<option value="">-- Select Doctor --</option>';
+            doctorDropdown.disabled = true;
         }
-    </script>
-}
+    }
+
+    function loadTimeSlots() {
+        const doctorId = document.getElementById("doctor").value;
+        const appointmentDate = document.getElementById("appointmentDate").value;
+        const timeSlotDropdown = document.getElementById("timeSlot");
+
+        if (doctorId && appointmentDate) {
+            // Check for existing appointments
+            checkExistingAppointment(doctorId, appointmentDate);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", `/Receptionist/GetAvailableTimeSlots?doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
+            xhr.send();
+
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                data.forEach(slot => {
+                    timeSlotDropdown.innerHTML += `<option value="${slot.time}">${slot.time}</option>`;
+                });
+                timeSlotDropdown.disabled = false;
+            } else {
+                console.error("Error fetching time slots:", xhr.statusText);
+                timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+                timeSlotDropdown.disabled = true;
+            }
+        } else {
+            timeSlotDropdown.innerHTML = '<option value="">-- Select Time Slot --</option>';
+            timeSlotDropdown.disabled = true;
+        }
+    }
+
+    function checkExistingAppointment(doctorId, appointmentDate) {
+        const patientId = document.querySelector("input[name='PatientId']").value; // Get the patient ID from the hidden input
+        const errorMessageDiv = document.getElementById("errorMessage");
+        const errorText = document.getElementById("errorText");
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `/Receptionist/CheckExistingAppointment?patientId=${patientId}&doctorId=${doctorId}&appointmentDate=${appointmentDate}`, false);
+        xhr.send();
+
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            if (data.hasExistingAppointment) {
+                errorText.textContent = "You already have an appointment with this doctor on the selected date. Please select another date.";
+                errorMessageDiv.style.display = "block";
+            } else {
+                errorMessageDiv.style.display = "none";
+            }
+        } else {
+            console.error("Error checking existing appointment:", xhr.statusText);
+        }
+    }
+
+    // Toastr notifications for actions
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <text>
+            toastr.success('@TempData["SuccessMessage"]', 'Success', {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 5000,
+            });
+        </text>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <text>
+            toastr.error('@TempData["ErrorMessage"]', 'Error', {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 5000,
+            });
+        </text>
+    }
+</script>

@@ -23,7 +23,6 @@ namespace CMSv2026WebApp.Controllers
             _doctorService = doctorService;
         }
 
-        //GET
         public IActionResult Index()
         {
             if (!IsUserInRole(2))
@@ -31,20 +30,30 @@ namespace CMSv2026WebApp.Controllers
                 return RedirectToAction("Login", "Accounts");
             }
 
-            var viewModel = new DoctorViewModel
+            try
             {
-                Staffs = _userService.GetAllStaffs(),
-                Roles = _userService.GetAllStaffRoles(),
-                Patients = _patientService.GetAllthePatients(),
-                Appointments = _appointmentService.GetTodaysAppointments()
+                int doctorId = GetLoggedInDoctorId(); // Get the logged-in DoctorId
 
-            };
+                var viewModel = new DoctorViewModel
+                {
+                    Staffs = _userService.GetAllStaffs(),
+                    Roles = _userService.GetAllStaffRoles(),
+                    Patients = _patientService.GetPatientsConsultedByDoctor(doctorId),
+                    Appointments = _appointmentService.GetTodaysAppointmentsForDoctor(doctorId) // Fetch only the logged-in doctor's appointments
+                };
 
-            ViewData["PageTitle"] = "Doctor";
-            ViewBag.Role = "Doctor";
-            ViewBag.Roles = viewModel.Roles;
-            return View(viewModel);
+                ViewData["PageTitle"] = "Doctor";
+                ViewBag.Role = "Doctor";
+                ViewBag.Roles = viewModel.Roles;
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Login", "Accounts");
+            }
         }
+
         public IActionResult PatientHistory(int patientId)
         {
             var patientHistory = _doctorService.GetPatientConsultationHistory(patientId);
@@ -93,20 +102,20 @@ namespace CMSv2026WebApp.Controllers
 
         private int GetLoggedInDoctorId()
         {
-            var staff = _userService.GetStaffByRoleId(2);
-            if (staff == null)
+            var doctorIdClaim = User.Claims.FirstOrDefault(c => c.Type == "DoctorId");
+            if (doctorIdClaim == null)
             {
-                throw new Exception("Doctor with RoleId 2 not found.");
+                throw new Exception("DoctorId claim not found. Ensure the user is a doctor.");
             }
 
-            var doctor = _userService.GetDoctorByStaffId(staff.StaffId);
-            if (doctor == null)
+            if (!int.TryParse(doctorIdClaim.Value, out int doctorId))
             {
-                throw new Exception("Doctor not found for the given StaffId.");
+                throw new Exception("Invalid DoctorId claim value.");
             }
 
-            return doctor.DoctorId;
+            return doctorId;
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -272,6 +281,16 @@ namespace CMSv2026WebApp.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GetConsultedPatients(string query)
+        {
+            int doctorId = GetLoggedInDoctorId(); // Get logged-in doctor's ID
+
+            // Fetch consulted patients with search query filter
+            var patients = _patientService.SearchConsultedPatientsByDoctor(doctorId, query);
+
+            return Json(patients); // Return as JSON for AJAX
+        }
 
 
 

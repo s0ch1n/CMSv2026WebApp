@@ -98,9 +98,9 @@
                     <h4 class="card-title mb-0">Search Patients</h4>
                 </div>
                 <div class="card-body">
-                    <form>
+                    <form id="searchPatientForm">
                         <div class="form-group mb-3">
-                            <input type="text" class="form-control" placeholder="Enter Patient Name or ID" />
+                            <input type="text" class="form-control" id="searchQuery" placeholder="Enter Patient Name or ID" />
                         </div>
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-search me-2"></i>Search
@@ -108,6 +108,37 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Consulted Patients Modal -->
+            <div class="modal fade" id="consultedPatientsModal" tabindex="-1" aria-labelledby="consultedPatientsLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-gradient-primary text-white">
+                            <h4 class="modal-title" id="consultedPatientsLabel">Patients Consulted</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Registration ID</th>
+                                        <th>Patient Name</th>
+                                        <th>Gender</th>
+                                        <th>Age</th>
+                                        <th>Blood Group</th>
+                                        <th>Contact</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="consultedPatientsTableBody">
+                                    <!-- Data will be inserted dynamically here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Upcoming Appointments Card -->
             <div class="card shadow-lg">
@@ -208,4 +239,65 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+
+    $(document).ready(function () {
+        $("#searchPatientForm").submit(function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            var searchQuery = $("#searchQuery").val();
+
+            $.ajax({
+                url: "/Doctor/GetConsultedPatients",
+                type: "GET",
+                data: { query: searchQuery },
+                success: function (response) {
+                    var tableBody = $("#consultedPatientsTableBody");
+                    tableBody.empty();
+
+
+                    function calculateAge(dob) {
+                    let birthDate = new Date(dob);
+                    let today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    let monthDiff = today.getMonth() - birthDate.getMonth();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--; // Adjust age if the birthday hasn't occurred yet this year
+                    }
+                    return age;
+                }
+
+
+                    if (response.length === 0) {
+                        tableBody.append("<tr><td colspan='7' class='text-center'>No patients found.</td></tr>");
+                    } else {
+                        response.forEach(function (patient) {
+                                let age = calculateAge(patient.dateOfBirth);
+                            tableBody.append(`
+                                <tr>
+                                    <td>${patient.registrationId}</td>
+                                    <td><a href="/Doctor/PatientDetails?patientId=${patient.patientId}" class="text-primary text-decoration-none">${patient.patientName}</a></td>
+                                    <td>${patient.gender}</td>
+                                    <td>${age} years</td>
+                                    <td>${patient.bloodGroup}</td>
+                                    <td>${patient.mobileNumber}</td>
+                                    <td>${patient.email}</td>
+                                </tr>
+                            `);
+                        });
+                    }
+
+                    // Show the modal
+                    $("#consultedPatientsModal").modal("show");
+                },
+                error: function () {
+                    alert("Error fetching patient data.");
+                }
+            });
+        });
+    });
+</script>
+
 }

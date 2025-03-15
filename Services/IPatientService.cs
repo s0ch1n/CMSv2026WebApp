@@ -15,6 +15,9 @@ namespace CMSv2026WebApp.Services
         void AddPrescriptions(MedicinePrescription prescription);
         void AddLabTests(LabTestPrescription labTest);
         string GenerateRegistrationId();
+        List<Patient> GetPatientsConsultedByDoctor(int doctorId);
+
+        List<Patient> SearchConsultedPatientsByDoctor(int doctorId, string query);
 
 
 

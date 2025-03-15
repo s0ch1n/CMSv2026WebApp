@@ -19,5 +19,6 @@ namespace CMSv2026WebApp.Services
         int GetStaffIdByRoleId(int roleId);
         Staff GetStaffByRoleId(int roleId);
         List<Specialization> GetAllSpecializations();
+        Role GetRoleById(int roleId);
     }
 }

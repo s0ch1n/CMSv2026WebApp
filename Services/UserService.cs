@@ -84,5 +84,10 @@ namespace CMSv2026WebApp.Services
         {
             _userRepository.UpdateUserStatus(userId, isActive);
         }
+
+        public Role GetRoleById(int roleId)
+        {
+            return _userRepository.GetRoleById(roleId);
+        }
     }
  }

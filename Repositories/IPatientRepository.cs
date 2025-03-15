@@ -19,6 +19,8 @@ namespace CMSv2026WebApp.Repositories
         void DeactivatePatient(int patientId);
         IEnumerable<Patient> SearchPatients(string searchTerm);
         string GenerateRegistrationId();
+        List<Patient> GetPatientsConsultedByDoctor(int doctorId);
+        List<Patient> SearchConsultedPatientsByDoctor(int doctorId, string query);
 
     }
 }

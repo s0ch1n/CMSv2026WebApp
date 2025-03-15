@@ -64,5 +64,15 @@ namespace CMSv2026WebApp.Services
         {
          return _patientRepository.GenerateRegistrationId();
         }
+
+        public List<Patient> GetPatientsConsultedByDoctor(int doctorId)
+        {
+            return _patientRepository.GetPatientsConsultedByDoctor(doctorId);
+        }
+
+        public List<Patient> SearchConsultedPatientsByDoctor(int doctorId, string query)
+        {
+            return _patientRepository.SearchConsultedPatientsByDoctor(doctorId, query);
+        }
     }
 }

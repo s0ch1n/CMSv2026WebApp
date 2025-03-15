@@ -1,88 +1,200 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-@model CMSv2026WebApp.Models.Patient
+﻿@model CMSv2026WebApp.Models.Patient
 
 @{
     ViewData["Title"] = "Edit Patient";
 }
 
-<h2>Edit Patient</h2>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<!-- Custom CSS -->
+<style>
+    body {
+        background: #f8f9fa;
+    }
 
-<form asp-action="EditPatient" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="PatientId" />
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
 
-    <div class="form-group">
-        <label asp-for="PatientName" class="control-label"></label>
-        <input asp-for="PatientName" class="form-control" />
-        <span asp-validation-for="PatientName" class="text-danger"></span>
+    .card-header {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        color: #fff;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    .btn-secondary {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-check-input {
+        margin-top: 0.3rem;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h4 class="card-title mb-0">
+                <i class="fas fa-user-edit me-2"></i>Edit Patient
+            </h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="EditPatient" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="PatientId" />
+
+                <!-- Patient Name -->
+                <div class="form-group">
+                    <label asp-for="PatientName" class="control-label">
+                        <i class="fas fa-user me-2"></i>Patient Name
+                    </label>
+                    <input asp-for="PatientName" class="form-control" />
+                    <span asp-validation-for="PatientName" class="text-danger"></span>
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="form-group">
+                    <label asp-for="DateOfBirth" class="control-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Date of Birth
+                    </label>
+                    <input asp-for="DateOfBirth" type="date" class="form-control" min="1965-01-01" max="2021-12-31" />
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-group">
+                    <label asp-for="Gender" class="control-label">
+                        <i class="fas fa-venus-mars me-2"></i>Gender
+                    </label>
+                    <select asp-for="Gender" class="form-control">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span asp-validation-for="Gender" class="text-danger"></span>
+                </div>
+
+                <!-- Mobile Number -->
+                <div class="form-group">
+                    <label asp-for="MobileNumber" class="control-label">
+                        <i class="fas fa-phone me-2"></i>Mobile Number
+                    </label>
+                    <input asp-for="MobileNumber" class="form-control" />
+                    <span asp-validation-for="MobileNumber" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label asp-for="Email" class="control-label">
+                        <i class="fas fa-envelope me-2"></i>Email
+                    </label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Address -->
+                <div class="form-group">
+                    <label asp-for="Address" class="control-label">
+                        <i class="fas fa-home me-2"></i>Address
+                    </label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <!-- Registration ID -->
+                <div class="form-group">
+                    <label asp-for="RegistrationId" class="control-label">
+                        <i class="fas fa-id-card me-2"></i>Registration ID
+                    </label>
+                    <input asp-for="RegistrationId" class="form-control" readonly />
+                    <span asp-validation-for="RegistrationId" class="text-danger"></span>
+                </div>
+
+                <!-- Blood Group -->
+                <div class="form-group">
+                    <label asp-for="BloodGroup" class="control-label">
+                        <i class="fas fa-tint me-2"></i>Blood Group
+                    </label>
+                    <input asp-for="BloodGroup" class="form-control" />
+                    <span asp-validation-for="BloodGroup" class="text-danger"></span>
+                </div>
+
+                <!-- Is Active -->
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
+                    </label>
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <div class="form-group">
-        <label asp-for="DateOfBirth" class="control-label"></label>
-        <input asp-for="DateOfBirth" type="date" class="form-control" min="1965-01-01" max="2021-12-31" />
-        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-    </div>
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-    <div class="form-group">
-        <label asp-for="Gender" class="control-label"></label>
-        <select asp-for="Gender" class="form-control">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-        </select>
-        <span asp-validation-for="Gender" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="MobileNumber" class="control-label"></label>
-        <input asp-for="MobileNumber" class="form-control" />
-        <span asp-validation-for="MobileNumber" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Email" class="control-label"></label>
-        <input asp-for="Email" type="email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Address" class="control-label"></label>
-        <input asp-for="Address" class="form-control" />
-        <span asp-validation-for="Address" class="text-danger"></span>
-    </div>
-
-    @* <div class="form-group"> *@
-    @*     <label asp-for="RegistrationId" class="control-label"></label> *@
-    @*     <input asp-for="RegistrationId" class="form-control" /> *@
-    @*     <span asp-validation-for="RegistrationId" class="text-danger"></span> *@
-    @* </div> *@
-    <div class="form-group">
-        <label asp-for="RegistrationId" class="control-label"></label>
-        <input asp-for="RegistrationId" class="form-control" readonly />
-        <span asp-validation-for="RegistrationId" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="BloodGroup" class="control-label"></label>
-        <input asp-for="BloodGroup" class="form-control" />
-        <span asp-validation-for="BloodGroup" class="text-danger"></span>
-    </div>
-
-    <div class="form-group form-check">
-        <label class="form-check-label">
-            <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-        </label>
-    </div>
-
-    <div class="form-group">
-        <input type="submit" value="Save" class="btn btn-primary" />
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </div>
-</form>
+<script>
+    // Toastr notifications for actions
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <text>
+            toastr.success('@TempData["SuccessMessage"]', 'Success', {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 5000,
+            });
+        </text>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <text>
+            toastr.error('@TempData["ErrorMessage"]', 'Error', {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 5000,
+            });
+        </text>
+    }
+</script>
 
 @section Scripts {
     @{

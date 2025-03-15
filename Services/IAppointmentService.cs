@@ -17,10 +17,11 @@ namespace CMSv2026WebApp.Services
         Doctor GetDoctorById(int doctorId);
         Doctor GetDoctorsById(int doctorId);
         bool HasExistingAppointment(int patientId, int doctorId, DateTime appointmentDate);
-        List<Appointment> GetTodaysAppointments();
+        //List<Appointment> GetTodaysAppointments();
         Appointment GetAppointmentByPatientAndDoctor(int patientId, int doctorId);
         Appointment GetAppointmentById(int appointmentId);
         void UpdateConsultationStatus(int appointmentId, string status);
+        List<Appointment> GetTodaysAppointmentsForDoctor(int doctorId);
 
     }
 }

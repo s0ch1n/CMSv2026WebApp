@@ -15,18 +15,92 @@ namespace CMSv2026WebApp.Repositories
             _connectionString = configuration.GetConnectionString("ConnStrMVC");
         }
 
+        public void AddStaff(Staff staff)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                using (var transaction = connection.BeginTransaction()) // Start transaction
+                {
+                    try
+                    {
+                        var sql = "AddStaff"; // Name of the stored procedure
+
+                        using (var command = new SqlCommand(sql, connection, transaction))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+
+                            // Adding parameters matching the stored procedure
+                            command.Parameters.AddWithValue("@FullName", staff.FullName);
+                            command.Parameters.AddWithValue("@Gender", staff.Gender);
+                            command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
+                            command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
+                            command.Parameters.AddWithValue("@UserName", staff.UserName);
+                            command.Parameters.AddWithValue("@Password", staff.Password);
+                            command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
+                            command.Parameters.AddWithValue("@RoleId", staff.RoleId);
+                            command.Parameters.AddWithValue("@IsActive", staff.IsActive);
+
+                            // Output parameter for StaffId
+                            var outputParam = new SqlParameter("@StaffId", SqlDbType.Int)
+                            {
+                                Direction = ParameterDirection.Output
+                            };
+                            command.Parameters.Add(outputParam);
+
+                            // Execute the procedure
+                            command.ExecuteNonQuery();
+
+                            // Retrieve the generated StaffId
+                            int staffId = (int)outputParam.Value;
+
+                            // If staff is a doctor, insert into Doctors table
+                            if (staff.RoleId == 2) // Assuming RoleId = 2 for doctors
+                            {
+                                var doctorSql = "INSERT INTO Doctors (StaffId, SpecializationId, ConsultationFee) VALUES (@StaffId, @SpecializationId, @ConsultationFee)";
+
+                                using (var doctorCommand = new SqlCommand(doctorSql, connection, transaction))
+                                {
+                                    doctorCommand.Parameters.AddWithValue("@StaffId", staffId);
+                                    doctorCommand.Parameters.AddWithValue("@SpecializationId", staff.SpecializationId ?? (object)DBNull.Value);
+                                    doctorCommand.Parameters.AddWithValue("@ConsultationFee", staff.ConsultationFee ?? (object)DBNull.Value);
+
+                                    doctorCommand.ExecuteNonQuery();
+                                }
+                            }
+
+                            transaction.Commit(); // Commit transaction
+                        }
+                    }
+                    catch
+                    {
+                        transaction.Rollback(); // Rollback in case of error
+                        throw;
+                    }
+                }
+            }
+        }
+
+
+
+
         //public void AddStaff(Staff staff)
         //{
         //    using (var connection = new SqlConnection(_connectionString))
         //    {
         //        connection.Open();
-        //        var sql = @"INSERT INTO Staffs (FullName, Gender, DateOfJoining, DateOfBirth, MobileNumber, UserName, 
-        //                Password, Qualification, EmailAddress, RoleId, IsActive) 
-        //                VALUES (@FullName, @Gender, @DateOfJoining, @DateOfBirth, @MobileNumber, @UserName, 
-        //                @Password, @Qualification, @EmailAddress, @RoleId, @IsActive)";
+
+        //        // Calling the stored procedure 'AddStaff' instead of directly writing the INSERT SQL
+        //        var sql = "AddStaff"; // The name of the stored procedure
 
         //        using (var command = new SqlCommand(sql, connection))
         //        {
+        //            command.CommandType = CommandType.StoredProcedure; // Specify that we are calling a stored procedure
+
+        //            // Adding parameters to the stored procedure
         //            command.Parameters.AddWithValue("@FullName", staff.FullName);
         //            command.Parameters.AddWithValue("@Gender", staff.Gender);
         //            command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
@@ -39,41 +113,11 @@ namespace CMSv2026WebApp.Repositories
         //            command.Parameters.AddWithValue("@RoleId", staff.RoleId);
         //            command.Parameters.AddWithValue("@IsActive", staff.IsActive);
 
+        //            // Execute the stored procedure
         //            command.ExecuteNonQuery();
         //        }
         //    }
         //}
-        public void AddStaff(Staff staff)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                // Calling the stored procedure 'AddStaff' instead of directly writing the INSERT SQL
-                var sql = "AddStaff"; // The name of the stored procedure
-
-                using (var command = new SqlCommand(sql, connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure; // Specify that we are calling a stored procedure
-
-                    // Adding parameters to the stored procedure
-                    command.Parameters.AddWithValue("@FullName", staff.FullName);
-                    command.Parameters.AddWithValue("@Gender", staff.Gender);
-                    command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
-                    command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
-                    command.Parameters.AddWithValue("@UserName", staff.UserName);
-                    command.Parameters.AddWithValue("@Password", staff.Password);
-                    command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
-                    command.Parameters.AddWithValue("@RoleId", staff.RoleId);
-                    command.Parameters.AddWithValue("@IsActive", staff.IsActive);
-
-                    // Execute the stored procedure
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
 
         public Staff UpdateStaff(Staff staff)
         {
@@ -361,15 +405,17 @@ namespace CMSv2026WebApp.Repositories
 
         public List<Specialization> GetAllSpecializations()
         {
-            using (var connection = new SqlConnection(_connectionString))
+            List<Specialization> specializations = new List<Specialization>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                connection.Open();
-                var sql = "SELECT SpecializationId, SpecializationName FROM Specialization";
-                using (var command = new SqlCommand(sql, connection))
+                using (SqlCommand cmd = new SqlCommand("GetAllSpecializations", conn))
                 {
-                    using (var reader = command.ExecuteReader())
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        var specializations = new List<Specialization>();
                         while (reader.Read())
                         {
                             specializations.Add(new Specialization
@@ -378,10 +424,10 @@ namespace CMSv2026WebApp.Repositories
                                 SpecializationName = reader.GetString(1)
                             });
                         }
-                        return specializations;
                     }
                 }
             }
+            return specializations;
         }
         public int GetStaffIdByRoleId(int roleId)
         {
@@ -402,6 +448,35 @@ namespace CMSv2026WebApp.Repositories
                 }
             }
             throw new Exception("Staff with the specified RoleId not found.");
+        }
+
+        public Role GetRoleById(int roleId)
+        {
+            Role role = null;
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("GetRoleById", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@RoleId", roleId);
+
+                    conn.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            role = new Role
+                            {
+                                RoleId = reader.GetInt32(0),
+                                RoleName = reader.GetString(1),
+                                IsActive = reader.GetBoolean(2)
+                            };
+                        }
+                    }
+                }
+            }
+            return role;
         }
     }
 }

@@ -4,12 +4,19 @@
     ViewData["Title"] = ViewData["PageTitle"];
 }
 
+@{
+    // Calculate min and max values for Date of Birth
+    var maxDob = DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd"); // Max: 18 years ago
+    var minDob = DateTime.Now.AddYears(-65).ToString("yyyy-MM-dd"); // Min: 65 years ago
+    var today = DateTime.Now.ToString("yyyy-MM-dd"); // Today’s date for Date of Joining
+}
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0">All Staff</h4>
+                    <h4 class="card-title mb-0">All Staffs</h4>
 
                     <div class="d-flex">
                         <!-- Add Staff Button -->
@@ -17,10 +24,12 @@
                             Add Staff
                         </button>
 
+
                         <!-- Search Box -->
                         <input type="text" id="staffSearch" class="form-control form-control-sm" placeholder="Search Staff..." />
                         <button id="searchButton" class="btn btn-primary btn-sm ms-2">Search</button>
                         <button id="clearSearch" class="btn btn-sm ms-2" style="display: none;">Back</button>
+
                     </div>
                 </div>
 
@@ -36,19 +45,15 @@
                                     <th>Mobile Number</th>
                                     <th>Role</th>
                                     <th>Status</th>
-                                    <th>Edit</th>
-                                    <th>View</th>
+                                    <th>Edit</th> 
                                 </tr>
                             </thead>
                             <tbody id="staffTableBody">
                                 @foreach (var user in Model.Staffs)
                                 {
-                                    <tr class="staff-row" data-id="@user.StaffId"
-                                        data-fullname="@user.FullName"
-                                        data-gender="@user.Gender"
-                                        data-dob="@user.DateOfBirth?.ToString("yyyy-MM-dd")"
-                                        data-mobile="@user.MobileNumber"
-                                        data-role="@user.Role?.RoleName"
+                                    <tr class="staff-row" data-id="@user.StaffId" data-fullname="@user.FullName"
+                                        data-gender="@user.Gender" data-dob="@user.DateOfBirth?.ToString("yyyy-MM-dd")"
+                                        data-mobile="@user.MobileNumber" data-role="@user.Role?.RoleName"
                                         data-isactive="@user.IsActive">
 
                                         <td>@user.FullName</td>
@@ -57,27 +62,12 @@
                                         <td>@user.DateOfJoining.ToString("yyyy-MM-dd")</td>
                                         <td>@user.MobileNumber</td>
                                         <td>@user.Role?.RoleName</td>
-                                        <td>
-                                            <div class="form-check form-switch d-flex justify-content-center">
-                                                <input type="checkbox" class="form-check-input toggle-status"
-                                                       data-staffid="@user.StaffId" @(user.IsActive ? "checked" : "") />
-                                            </div>
-                                        </td>
-
+                                        <td>@(user.IsActive ? "Active" : "Inactive")</td>
                                         <td>
                                             <!-- Edit Button -->
                                             <button class="btn btn-warning btn-sm edit-staff" data-id="@user.StaffId">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                        </td>
-
-                                        <td>
-                                            <!-- View Button -->
-                                            <button class="btn btn-info btn-sm view-staff" data-id="@user.StaffId">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        </td>
-
                                     </tr>
                                 }
                             </tbody>
@@ -88,34 +78,27 @@
         </div>
     </div>
 </div>
-
+<!-- End Full Width Container -->
 <!-- Add Staff Modal -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-gradient-primary text-white">
-                <h5 class="modal-title" id="addStaffModalLabel">
-                    <i class="fas fa-user-plus me-2"></i>Register New Staff
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStaffModalLabel">Register New Staff</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form asp-action="RegisterNewStaff" method="post">
                     <!-- Full Name -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.FullName" class="form-label">
-                            <i class="fas fa-user me-2"></i>Full Name
-                        </label>
-                        <input asp-for="Staff.FullName" class="form-control" placeholder="Enter full name" required />
+                        <label asp-for="Staff.FullName" class="form-label">Full Name</label>
+                        <input asp-for="Staff.FullName" class="form-control" placeholder="Full Name" />
                         <span asp-validation-for="Staff.FullName" class="text-danger"></span>
                     </div>
-
                     <!-- Gender -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.Gender" class="form-label">
-                            <i class="fas fa-venus-mars me-2"></i>Gender
-                        </label>
-                        <select asp-for="Staff.Gender" class="form-control" required>
+                        <label asp-for="Staff.Gender" class="form-label">Gender</label>
+                        <select asp-for="Staff.Gender" class="form-control">
                             <option value="">Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -126,62 +109,48 @@
 
                     <!-- Date of Birth -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.DateOfBirth" class="form-label">
-                            <i class="fas fa-calendar-alt me-2"></i>Date of Birth
-                        </label>
-                        <input asp-for="Staff.DateOfBirth" class="form-control" type="date" required />
+                        <label asp-for="Staff.DateOfBirth" class="form-label">Date of Birth</label>
+                        <input asp-for="Staff.DateOfBirth" class="form-control" type="date"
+                               min="@minDob" max="@maxDob" />
                         <span asp-validation-for="Staff.DateOfBirth" class="text-danger"></span>
                     </div>
-
                     <!-- Date of Joining -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.DateOfJoining" class="form-label">
-                            <i class="fas fa-calendar-check me-2"></i>Date of Joining
-                        </label>
-                        <input asp-for="Staff.DateOfJoining" class="form-control" type="date" required />
+                        <label asp-for="Staff.DateOfJoining" class="form-label">Date of Joining</label>
+                        <input asp-for="Staff.DateOfJoining" class="form-control" type="date" max="@today" />
                         <span asp-validation-for="Staff.DateOfJoining" class="text-danger"></span>
                     </div>
 
                     <!-- Mobile Number -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.MobileNumber" class="form-label">
-                            <i class="fas fa-phone me-2"></i>Mobile Number
-                        </label>
-                        <input asp-for="Staff.MobileNumber" class="form-control" placeholder="Enter mobile number" required />
+                        <label asp-for="Staff.MobileNumber" class="form-label">Mobile Number</label>
+                        <input asp-for="Staff.MobileNumber" class="form-control" placeholder="Enter 10-digit Mobile Number"
+                               pattern="[6-9]\d{9}" title="Mobile number must start with 6, 7, 8, or 9 and be exactly 10 digits"
+                               maxlength="10" required />
                         <span asp-validation-for="Staff.MobileNumber" class="text-danger"></span>
                     </div>
 
-                    <!-- Username -->
+                    <!-- Username & Password -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.UserName" class="form-label">
-                            <i class="fas fa-user-circle me-2"></i>Username
-                        </label>
-                        <input asp-for="Staff.UserName" class="form-control" placeholder="Enter username" required />
+                        <label asp-for="Staff.UserName" class="form-label">Username</label>
+                        <input asp-for="Staff.UserName" class="form-control" placeholder="Username" />
                         <span asp-validation-for="Staff.UserName" class="text-danger"></span>
                     </div>
-
-                    <!-- Password -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.Password" class="form-label">
-                            <i class="fas fa-lock me-2"></i>Password
-                        </label>
-                        <input asp-for="Staff.Password" class="form-control" type="password" placeholder="Enter password" required />
+                        <label asp-for="Staff.Password" class="form-label">Password</label>
+                        <input asp-for="Staff.Password" class="form-control" type="password" placeholder="Password" />
                         <span asp-validation-for="Staff.Password" class="text-danger"></span>
                     </div>
 
+                    
                     <!-- Role Dropdown -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.RoleId" class="form-label">
-                            <i class="fas fa-user-tag me-2"></i>Role
-                        </label>
-                        <select asp-for="Staff.RoleId" class="form-control" id="staffRole" required>
+                        <label asp-for="Staff.RoleId" class="form-label">Role</label>
+                        <select asp-for="Staff.RoleId" class="form-control" id="staffRole">
                             <option value="">----Select Role----</option>
-                            @if (ViewBag.Roles != null)
+                            @foreach (var role in ViewBag.Roles)
                             {
-                                foreach (var role in ViewBag.Roles)
-                                {
-                                    <option value="@role.RoleId">@role.RoleName</option>
-                                }
+                                <option value="@role.RoleId">@role.RoleName</option>
                             }
                         </select>
                         <span asp-validation-for="Staff.RoleId" class="text-danger"></span>
@@ -189,332 +158,300 @@
 
                     <!-- Specialization Field (Only for Doctors) -->
                     <div class="form-group mb-3" id="specializationField" style="display: none;">
-                        <label asp-for="Staff.Doctor.SpecializationId" class="form-label">
-                            <i class="fas fa-stethoscope me-2"></i>Specialization
-                        </label>
-                        <select asp-for="Staff.Doctor.SpecializationId" class="form-control">
+                        <label asp-for="Staff.SpecializationId" class="form-label">Specialization</label>
+                        <select asp-for="Staff.SpecializationId" class="form-control">
                             <option value="">Select Specialization</option>
                             @foreach (var specialization in ViewBag.Specializations)
                             {
                                 <option value="@specialization.SpecializationId">@specialization.SpecializationName</option>
                             }
                         </select>
-                        <span asp-validation-for="Staff.Doctor.SpecializationId" class="text-danger"></span>
+                        <span asp-validation-for="Staff.SpecializationId" class="text-danger"></span>
                     </div>
 
                     <!-- Consultation Fee (Only for Doctors) -->
                     <div class="form-group mb-3" id="consultationFeeField" style="display: none;">
-                        <label asp-for="Staff.Doctor.ConsultationFee" class="form-label">
-                            <i class="fas fa-dollar-sign me-2"></i>Consultation Fee
-                        </label>
-                        <input asp-for="Staff.Doctor.ConsultationFee" class="form-control" type="number" placeholder="Enter consultation fee" />
-                        <span asp-validation-for="Staff.Doctor.ConsultationFee" class="text-danger"></span>
+                        <label asp-for="Staff.ConsultationFee" class="form-label">Consultation Fee</label>
+                        <input asp-for="Staff.ConsultationFee" class="form-control" type="number" placeholder="Enter Consultation Fee" />
+                        <span asp-validation-for="Staff.ConsultationFee" class="text-danger"></span>
                     </div>
-
-                    <!-- Email Address -->
+                    <!-- Email & Qualification -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.EmailAddress" class="form-label">
-                            <i class="fas fa-envelope me-2"></i>Email Address
-                        </label>
-                        <input asp-for="Staff.EmailAddress" class="form-control" placeholder="Enter email address" required />
+                        <label asp-for="Staff.EmailAddress" class="form-label">Email Address</label>
+                        <input asp-for="Staff.EmailAddress" class="form-control" placeholder="Email Address" />
                         <span asp-validation-for="Staff.EmailAddress" class="text-danger"></span>
                     </div>
-
-                    <!-- Qualification -->
                     <div class="form-group mb-3">
-                        <label asp-for="Staff.Qualification" class="form-label">
-                            <i class="fas fa-graduation-cap me-2"></i>Qualification
-                        </label>
-                        <input asp-for="Staff.Qualification" class="form-control" placeholder="Enter qualification" required />
+                        <label asp-for="Staff.Qualification" class="form-label">Qualification</label>
+                        <input asp-for="Staff.Qualification" class="form-control" placeholder="Qualification" />
                         <span asp-validation-for="Staff.Qualification" class="text-danger"></span>
                     </div>
 
                     <!-- IsActive Checkbox -->
                     <div class="form-group mb-3">
                         <div class="form-check">
-                            <input asp-for="Staff.IsActive" class="form-check-input" type="checkbox" checked />
+                            <input asp-for="Staff.IsActive" class="form-check-input" type="checkbox" />
                             <label asp-for="Staff.IsActive" class="form-check-label">Is Active</label>
                         </div>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Register
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Close
-                        </button>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Edit Staff Modal -->
-<div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<!-- Staff Details Modal -->
+<!-- Staff Details (Edit) Modal -->
+<div class="modal fade" id="staffDetailsModal" tabindex="-1" aria-labelledby="staffDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editStaffModalLabel">Edit Staff</h5>
+                <h5 class="modal-title" id="staffDetailsModalLabel">Edit Staff</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="editStaffForm">
-                    <input type="hidden" id="editStaffId">
-                    <div class="mb-3">
-                        <label for="editFullName" class="form-label">Full Name</label>
-                        <input type="text" id="editFullName" class="form-control" required>
+                    <input type="hidden" id="editStaffId"> <!-- Hidden Staff ID -->
+
+                    <div class="form-group mb-3">
+                        <label for="editStaffFullName" class="form-label">Full Name</label>
+                        <input type="text" id="editStaffFullName" class="form-control" required />
                     </div>
-                    <div class="mb-3">
-                        <label for="editGender" class="form-label">Gender</label>
-                        <select id="editGender" class="form-control" required>
-                            <option value="">Select Gender</option>
+                    <div class="form-group mb-3">
+                        <label for="editStaffGender" class="form-label">Gender</label>
+                        <select id="editStaffGender" class="form-control">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="editDateOfBirth" class="form-label">Date of Birth</label>
-                        <input type="date" id="editDateOfBirth" class="form-control" required>
+                    @* <div class="form-group mb-3"> *@
+                    @*     <label for="editStaffDob" class="form-label">Date of Birth</label> *@
+                    @*     <input type="date" id="editStaffDob" class="form-control" required /> *@
+                    @* </div> *@
+                    <div class="form-group mb-3">
+                        <label for="editStaffMobile" class="form-label">Mobile Number</label>
+                        <input type="text" id="editStaffMobile" class="form-control" required />
                     </div>
-                    <div class="mb-3">
-                        <label for="editDateOfJoining" class="form-label">Date of Joining</label>
-                        <input type="date" id="editDateOfJoining" class="form-control" required>
+
+                    <div class="form-group mb-3">
+                        <label for="editStaffStatus" class="form-label">Active Staff</label>
+                        <input type="checkbox" id="editStaffStatus" class="form-check-input">
                     </div>
-                    <div class="mb-3">
-                        <label for="editMobileNumber" class="form-label">Mobile Number</label>
-                        <input type="text" id="editMobileNumber" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editUserName" class="form-label">Username</label>
-                        <input type="text" id="editUserName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editPassword" class="form-label">Password</label>
-                        <input type="password" id="editPassword" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editRoleId" class="form-label">Role</label>
-                        <select id="editRoleId" class="form-control" required>
-                            <option value="">----Select Role----</option>
-                            @if (ViewBag.Roles != null)
-                            {
-                                foreach (var role in ViewBag.Roles)
-                                {
-                                    <option value="@role.RoleId">@role.RoleName</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3" id="editSpecializationField" style="display: none;">
-                        <label for="editSpecializationId" class="form-label">Specialization</label>
-                        <select id="editSpecializationId" class="form-control">
-                            <option value="">Select Specialization</option>
-                            @foreach (var specialization in ViewBag.Specializations)
-                            {
-                                <option value="@specialization.SpecializationId">@specialization.SpecializationName</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3" id="editConsultationFeeField" style="display: none;">
-                        <label for="editConsultationFee" class="form-label">Consultation Fee</label>
-                        <input type="number" id="editConsultationFee" class="form-control" placeholder="Enter consultation fee">
-                    </div>
-                    <div class="mb-3">
-                        <label for="editEmailAddress" class="form-label">Email Address</label>
-                        <input type="email" id="editEmailAddress" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editQualification" class="form-label">Qualification</label>
-                        <input type="text" id="editQualification" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input type="checkbox" id="editIsActive" class="form-check-input">
-                            <label for="editIsActive" class="form-check-label">Is Active</label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEditStaffBtn">Save Changes</button>
             </div>
         </div>
     </div>
 </div>
 
-
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const roleDropdown = document.getElementById("staffRole");
-            const specializationField = document.getElementById("specializationField");
-            const consultationFeeField = document.getElementById("consultationFeeField");
-
-            function toggleDoctorFields() {
-                if (roleDropdown.value === "Doctor") {
-                    specializationField.style.display = "block";
-                    consultationFeeField.style.display = "block";
-                } else {
-                    specializationField.style.display = "none";
-                    consultationFeeField.style.display = "none";
-                }
-            }
-
-            roleDropdown.addEventListener("change", toggleDoctorFields);
-            toggleDoctorFields(); // Run on page load
-        });
-
-        // Handle Search
-        $("#searchButton").on("click", function () {
-            let searchQuery = $("#staffSearch").val().toLowerCase();
-            $("#staffTableBody tr").each(function () {
-                let fullName = $(this).find("td:nth-child(1)").text().toLowerCase();
-                if (fullName.indexOf(searchQuery) !== -1) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-
-            if (searchQuery) {
-                $("#clearSearch").show();
-            } else {
-                $("#clearSearch").hide();
-            }
-        });
-
-        // Clear search input
-        $("#clearSearch").on("click", function () {
-            $("#staffSearch").val('');
-            $("#searchButton").click();
-            $(this).hide();
-        });
-
         $(document).ready(function () {
-            // Toggle Status Functionality
-            $(".toggle-status").change(function () {
-                let staffId = $(this).data("staffid");
-                let isActive = $(this).prop("checked");
+            // Calculate Age
+            function calculateAge(birthDate) {
+                const today = new Date();
+                const birthDateObj = new Date(birthDate);
+                let age = today.getFullYear() - birthDateObj.getFullYear();
+                const month = today.getMonth() - birthDateObj.getMonth();
+                if (month < 0 || (month === 0 && today.getDate() < birthDateObj.getDate())) {
+                    age--;
+                }
+                return age;
+            }
 
-                $.ajax({
-                    url: "/Admin/ToggleUserStatus",
-                    type: "POST",
-                    data: { staffId: staffId, isActive: isActive },
-                    success: function (response) {
-                        alert(response.message);
-                    },
-                    error: function () {
-                        alert("Error toggling status.");
-                    }
-                });
+            // Update the age column with the calculated age
+            $(".age-cell").each(function () {
+                const dob = $(this).data("dob");
+                const age = calculateAge(dob);
+                $(this).text(age);
             });
 
-            // Edit Button Click - Load Data into Modal
-            $(".edit-staff").click(function () {
-                let staffId = $(this).data("id");
+                  $(document).ready(function () {
+            // ✅ Edit Button Click Event
+            $(document).on("click", ".edit-staff", function () {
+                
+                let row = $(this).closest("tr");
+                let staffId = row.data('id');
+                let fullName = row.data('fullname');
+                let gender = row.data('gender');
+                let dob = row.data('dob');
+                let mobile = row.data('mobile');
+                let role = row.data('role');
+                let isActive = row.data('isactive');
 
+                // Populate modal fields
+                $("#editStaffId").val(staffId);
+                $("#editStaffFullName").val(fullName);
+                $("#editStaffGender").val(gender);
+                $("#editStaffDob").val(dob);
+                $("#editStaffMobile").val(mobile);
+                $("#editStaffRole").val(role);
+                $("#editStaffStatus").prop("checked", isActive);
+
+                // Show modal
+                $("#staffDetailsModal").modal('show');
+            });
+
+            // ✅ Save Edited Staff Details
+            $("#saveEditStaffBtn").on("click", function () {
+                let updatedData = {
+                    Staff: {
+                        StaffId: $("#editStaffId").val(),
+                        FullName: $("#editStaffFullName").val(),
+                        Gender: $("#editStaffGender").val(),
+                        //DateOfBirth: $("#editStaffDob").val(),
+                        MobileNumber: $("#editStaffMobile").val(),
+                       // RoleId: $("#editStaffRole").val(),
+                        IsActive: $("#editStaffStatus").is(":checked")
+                    }
+                };
+                        $("#saveEditStaffBtn").on("click", function () {
+            let updatedData = {
+                Staff: {
+                    StaffId: $("#editStaffId").val(),
+                    FullName: $("#editStaffFullName").val() || null,
+                    Gender: $("#editStaffGender").val() || null,
+                   // DateOfBirth: $("#editStaffDob").val() ? new Date($("#editStaffDob").val()).toISOString() : null,
+                    MobileNumber: $("#editStaffMobile").val() || null,
+                    //RoleId: $("#editStaffRole").val() || null,
+                    IsActive: $("#editStaffStatus").is(":checked")
+                }
+            };
+
+            $.ajax({
+                url: '@Url.Action("UpdateStaff", "Admin")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(updatedData),
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success("Staff updated successfully!");
+                        $("#staffDetailsModal").modal("hide");
+                        location.reload(); // Refresh to reflect changes
+                    } else {
+                        toastr.error(response.message || "Error updating staff.");
+                    }
+                },
+                error: function () {
+                    toastr.error("Request failed! Try again.");
+                }
+            });
+        });
                 $.ajax({
-                    url: "/Admin/EditStaff",
-                    type: "GET",
-                    data: { staffId: staffId },
-                    success: function (data) {
-                        if (data.staff) {
-                            $("#editStaffId").val(data.staff.StaffId);
-                            $("#editFullName").val(data.staff.FullName);
-                            $("#editGender").val(data.staff.Gender);
-                            $("#editDateOfBirth").val(data.staff.DateOfBirth ? data.staff.DateOfBirth.split('T')[0] : '');
-                            $("#editDateOfJoining").val(data.staff.DateOfJoining ? data.staff.DateOfJoining.split('T')[0] : '');
-                            $("#editMobileNumber").val(data.staff.MobileNumber);
-                            $("#editUserName").val(data.staff.UserName);
-                            $("#editPassword").val(data.staff.Password);
-                            $("#editRoleId").val(data.staff.RoleId);
-                            $("#editEmailAddress").val(data.staff.EmailAddress);
-                            $("#editQualification").val(data.staff.Qualification);
-                            $("#editIsActive").prop("checked", data.staff.IsActive);
+                    url: '@Url.Action("UpdateStaff", "Admin")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updatedData),
+                    headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success("Staff updated successfully!");
 
-                            if (data.staff.RoleId === "Doctor") {
-                                $("#editSpecializationField").show();
-                                $("#editConsultationFeeField").show();
-                                $("#editSpecializationId").val(data.staff.Doctor.SpecializationId);
-                                $("#editConsultationFee").val(data.staff.Doctor.ConsultationFee);
-                            } else {
-                                $("#editSpecializationField").hide();
-                                $("#editConsultationFeeField").hide();
-                            }
+                            // ✅ Update row dynamically
+                            let row = $(`tr[data-id='${updatedData.Staff.StaffId}']`);
+                            row.find("td:nth-child(1)").text(updatedData.Staff.FullName);
+                            row.find("td:nth-child(2)").text(updatedData.Staff.Gender);
+                           // row.find("td:nth-child(3)").text(updatedData.Staff.DateOfBirth);
+                            row.find("td:nth-child(5)").text(updatedData.Staff.MobileNumber);
+                            //row.find("td:nth-child(6)").text($("#editStaffRole option:selected").text());
+                            row.find(".toggle-status").prop("checked", updatedData.Staff.IsActive);
 
-                            $("#editStaffModal").modal("show");
+                            // Hide modal
+                            $("#staffDetailsModal").modal("hide");
                         } else {
-                            alert("Staff details not found.");
+                            toastr.error(response.message || "Error updating staff.");
                         }
                     },
                     error: function () {
-                        alert("Error fetching staff details.");
-                    }
-                });
-            });
-
-            // Handle Edit Form Submission
-            $("#editStaffForm").submit(function (e) {
-                e.preventDefault();
-
-                let staffId = $("#editStaffId").val();
-                let fullName = $("#editFullName").val();
-                let gender = $("#editGender").val();
-                let dateOfBirth = $("#editDateOfBirth").val();
-                let dateOfJoining = $("#editDateOfJoining").val();
-                let mobileNumber = $("#editMobileNumber").val();
-                let userName = $("#editUserName").val();
-                let password = $("#editPassword").val();
-                let roleId = $("#editRoleId").val();
-                let emailAddress = $("#editEmailAddress").val();
-                let qualification = $("#editQualification").val();
-                let isActive = $("#editIsActive").prop("checked");
-                let specializationId = $("#editSpecializationId").val();
-                let consultationFee = $("#editConsultationFee").val();
-
-                let staffData = {
-                    StaffId: staffId,
-                    FullName: fullName,
-                    Gender: gender,
-                    DateOfBirth: dateOfBirth,
-                    DateOfJoining: dateOfJoining,
-                    MobileNumber: mobileNumber,
-                    UserName: userName,
-                    Password: password,
-                    RoleId: roleId,
-                    EmailAddress: emailAddress,
-                    Qualification: qualification,
-                    IsActive: isActive
-                };
-
-                if (roleId === "Doctor") {
-                    staffData.Doctor = {
-                        SpecializationId: specializationId,
-                        ConsultationFee: consultationFee
-                    };
-                }
-
-                $.ajax({
-                    url: "/Admin/UpdateStaff",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({ Staff: staffData }),
-                    success: function (response) {
-                        alert(response.message);
-                        $("#editStaffModal").modal("hide");
-                        location.reload();
-                    },
-                    error: function () {
-                        alert("Error updating staff details.");
+                        toastr.error("Request failed! Try again.");
                     }
                 });
             });
         });
+             
+            $(document).ready(function () {
+            function toggleDoctorFields() {
+                var selectedRole = $("#staffRole option:selected").text().toLowerCase();
+                if (selectedRole === "doctor") {
+                    $("#specializationField").show();
+                    $("#consultationFeeField").show();
+                } else {
+                    $("#specializationField").hide();
+                    $("#consultationFeeField").hide();
+                }
+            }
+
+            // ✅ On role change, toggle fields
+            $("#staffRole").change(toggleDoctorFields);
+
+            // ✅ Call on page load (for Edit Mode)
+            toggleDoctorFields();
+        });
+            // ✅ Remove row-click functionality (previously opening modal)
+            $(".staff-row").off("click");
+
+            // Handle Search
+            $("#searchButton").on("click", function () {
+                let searchQuery = $("#staffSearch").val().toLowerCase();
+                $("#staffTableBody tr").each(function () {
+                    let fullName = $(this).find("td:nth-child(1)").text().toLowerCase();
+                    if (fullName.indexOf(searchQuery) !== -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                if (searchQuery) {
+                    $("#clearSearch").show();
+                } else {
+                    $("#clearSearch").hide();
+                }
+            });
+
+            // Clear search input
+            $("#clearSearch").on("click", function () {
+                $("#staffSearch").val('');
+                $("#searchButton").click();
+                $(this).hide();
+            });
+
+                    $(".toggle-status").on("change", function () {
+            let staffId = parseInt($(this).data("staffid")); // Ensure correct ID retrieval
+            let isActive = $(this).prop("checked");
+
+            $.ajax({
+                url: '/Admin/ToggleUserStatus', // Ensure correct route
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                dataType: 'json',
+                data: { staffId: staffId, isActive: isActive },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.warning(response.message || "Staff status update failed.");
+                    }
+                },
+                error: function () {
+                    toastr.error("Failed to update staff status.");
+                }
+            });
+        });
+
+        });
     </script>
-}
 
 }

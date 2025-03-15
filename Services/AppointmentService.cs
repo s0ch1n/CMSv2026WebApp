@@ -110,9 +110,16 @@ namespace CMSv2026WebApp.Services
             return _appointmentRepository.HasExistingAppointment(patientId, doctorId, appointmentDate);
         }
 
-        public List<Appointment> GetTodaysAppointments()
+        //public List<Appointment> GetTodaysAppointments()
+        //{
+        //    return _appointmentRepository.GetTodaysAppointments();
+        //}
+
+        public List<Appointment> GetTodaysAppointmentsForDoctor(int doctorId)
         {
-            return _appointmentRepository.GetTodaysAppointments();
+            return _appointmentRepository.GetTodaysAppointmentsForDoctor(doctorId);
+          
         }
+
     }
 }
