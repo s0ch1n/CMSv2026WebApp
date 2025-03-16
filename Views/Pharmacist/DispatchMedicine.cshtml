@@ -1,0 +1,47 @@
+﻿@model List<CMSv2026WebApp.ViewModel.DispatchMedicineViewModel>
+
+@{
+    ViewData["Title"] = "Dispatch Medicine";
+}
+
+<h2>Dispatch Medicine</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Prescription ID</th>
+            <th>Patient Name</th>
+            <th>Doctor Name</th>
+            <th>Medicine</th>
+            <th>Dosage</th>
+            <th>Frequency</th>
+            <th>Duration</th>
+            <th>Available Stock</th>
+            <th>Dispatch Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var prescription in Model)
+        {
+            <tr>
+                <td>@prescription.PrescriptionId</td>
+                <td>@prescription.PatientName</td>
+                <td>@prescription.DoctorName</td>
+                <td>@prescription.MedicineName</td>
+                <td>@prescription.Dosage</td>
+                <td>@prescription.Frequency</td>
+                <td>@prescription.Duration</td>
+                <td>@prescription.AvailableStock</td>
+                <td>
+                    <form asp-action="DispatchMedicine" method="post">
+                        <input type="hidden" name="prescriptionId" value="@prescription.PrescriptionId" />
+                        <input type="hidden" name="medicineId" value="@prescription.MedicineId" />
+                        <input type="number" name="dispatchQuantity" class="form-control" required min="1" max="@prescription.AvailableStock" />
+                        <button type="submit" class="btn btn-warning btn-sm mt-2">Dispatch</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

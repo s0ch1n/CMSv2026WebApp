@@ -9,5 +9,7 @@ namespace CMSv2026WebApp.Models
 
         [Required, MaxLength(100)]
         public string MedicineTypeName { get; set; }
+
+        public Medicine Medicine { get; set; }
     }
 }

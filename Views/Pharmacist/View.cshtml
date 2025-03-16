@@ -1,0 +1,39 @@
+﻿@model List<CMSv2026WebApp.ViewModel.MedicineViewModel>
+
+@{
+    ViewData["Title"] = "Manage Medicines";
+}
+
+<h2>Manage Medicines</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Medicine Name</th>
+            <th>Type</th>
+            <th>Unit</th>
+            <th>Expiry Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var medicine in Model)
+        {
+            <tr>
+                <td>@medicine.MedicineName</td>
+                <td>@medicine.MedicineTypeName</td>
+                <td>@medicine.Unit</td>
+                <td>@medicine.ExpiryDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@medicine.MedicineId" class="btn btn-sm btn-success">Edit</a>
+                    <form asp-action="Delete" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@medicine.MedicineId" />
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Add Medicine</a>

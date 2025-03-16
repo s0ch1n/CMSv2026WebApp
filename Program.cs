@@ -49,6 +49,10 @@ namespace CMSv2026WebApp
 
             builder.Services.AddScoped<ILabTestRepository, LabTestRepository>();
 
+            builder.Services.AddScoped<IPharmacistService, PharmacistService>();
+
+            builder.Services.AddScoped<IPharmacistRepository, PharmacistRepository>();
+
 
             var app = builder.Build();
 
