@@ -165,8 +165,8 @@ namespace CMSv2026WebApp.Controllers
                 MedicineId = p.MedicineId,
                 MedicineName = p.MedicineName,
                 AvailableStock = _pharmacistService.GetStockByMedicineId(p.MedicineId)?.StockInHand ?? 0,
-                PatientName = p.Appointment.Patient.PatientName,
-                DoctorName = p.Appointment.Doctor.Staff.FullName,
+                PatientName = p.Appointment?.Patient?.PatientName ?? "Unknown",
+                DoctorName = p.Appointment?.Doctor?.Staff?.FullName ?? "Unknown",
                 Dosage = p.Dosage,
                 Frequency = p.Frequency,
                 Duration = p.Duration
@@ -174,6 +174,7 @@ namespace CMSv2026WebApp.Controllers
 
             return View(dispatchViewModels);
         }
+
 
         [HttpPost]
         public IActionResult DispatchMedicine(int prescriptionId, int medicineId, int dispatchQuantity)

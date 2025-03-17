@@ -263,8 +263,8 @@ namespace CMSv2026WebApp.Repositories
             INNER JOIN Staff s ON d.StaffId = s.StaffId
             WHERE mp.MedicinePrescriptionId = @MedicinePrescriptionId 
             AND CAST(mp.CreatedDate AS DATE) = CAST(GETDATE() AS DATE);"; //Fetch only today's prescriptions
-        
-        var command = new SqlCommand(query, connection);
+
+                var command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@MedicinePrescriptionId", medicinePrescriptionId);
                 connection.Open();
 
@@ -355,25 +355,25 @@ namespace CMSv2026WebApp.Repositories
             using (var connection = new SqlConnection(_connectionString))
             {
                 string query = @"
-                SELECT 
-                    mp.MedicinePrescriptionId AS PrescriptionId,
-                    p.PatientName,
-                    s.FullName AS DoctorName,
-                    m.MedicineId,
-                    m.MedicineName,
-                    mp.Dosage,
-                    mp.Frequency,
-                    mp.Duration,
-                    ISNULL(ms.StockInHand, 0) AS AvailableStock
-                FROM MedicinePrescription mp
-                INNER JOIN Appointment a ON mp.AppointmentId = a.AppointmentId
-                INNER JOIN Patient p ON a.PatientId = p.PatientId
-                INNER JOIN Doctors d ON a.DoctorId = d.DoctorId
-                INNER JOIN Staffs s ON d.StaffId = s.StaffId
-                INNER JOIN Medicine m ON mp.MedicineId = m.MedicineId
-                LEFT JOIN MedicineStock ms ON m.MedicineId = ms.MedicineId
-                WHERE CAST(mp.CreatedDate AS DATE) = CAST(GETDATE() AS DATE);
-            ";
+        SELECT 
+    mp.MedicinePrescriptionId AS PrescriptionId,
+    p.PatientName,
+    s.FullName AS DoctorName,
+    m.MedicineId,
+    m.MedicineName,
+    mp.Dosage,
+    mp.Frequency,
+    mp.Duration,
+    ISNULL(ms.StockInHand, 0) AS AvailableStock
+FROM MedicinePrescription mp
+INNER JOIN Appointment a ON mp.AppointmentId = a.AppointmentId
+INNER JOIN Patient p ON a.PatientId = p.PatientId
+INNER JOIN Doctors d ON a.DoctorId = d.DoctorId
+INNER JOIN Staffs s ON d.StaffId = s.StaffId
+INNER JOIN Medicine m ON mp.MedicineId = m.MedicineId
+LEFT JOIN MedicineStock ms ON m.MedicineId = ms.MedicineId
+WHERE CAST(mp.CreatedDate AS DATE) = CAST(GETDATE() AS DATE)
+    ";
 
                 var command = new SqlCommand(query, connection);
                 connection.Open();
@@ -401,4 +401,5 @@ namespace CMSv2026WebApp.Repositories
             return prescriptions;
         }
     }
+
 }
