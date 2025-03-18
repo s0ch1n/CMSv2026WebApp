@@ -5,19 +5,22 @@ namespace CMSv2026WebApp.Services
 {
     public interface ILabTestService
     {
-        //List<LabTestPrescription> GetPrescribedLabTests();
-        //void GenerateLabTestReport(int labTestPrescriptionId);
-        //LabTestPrescription GetPrescriptionById(int id);
-        //List<LabTestPrescriptionViewModel> GetPrescribedLabTestss();
-        //void AddTestValue(int labTestPrescriptionId, string testValue, string remarks);
+        // Lab Test Methods
         void AddLabTest(LabTest labTest);
+        List<LabTest> GetAllLabTests();
+        LabTest GetLabTestById(int labTestId);
+        void UpdateLabTest(LabTest labTest);
+
+        // Lab Test Prescription Methods
+        void AddLabTestPrescription(LabTestPrescription labTestPrescription);
+        List<LabTestPrescription> GetAllLabTestPrescriptions();
+        //List<LabTestPrescription> GetPendingLabTestPrescriptions();
         LabTestPrescription GetLabTestPrescriptionById(int labTestPrescriptionId);
         void UpdateLabTestPrescription(LabTestPrescription labTestPrescription);
-        List<LabTestPrescription> GetLabTestPrescriptions();
-        // List<LabTestPrescription> GetLabTestPrescriptions(int staffId);
-        List<LabTestCategory> GetLabTestCategories();
-        List<LabTest> GetAllLabTests();
 
+        // Lab Test Report Methods
+        void AddLabTestReport(LabTestReport labTestReport);
+        List<LabTestReport> GetAllLabTestReports();
     }
 }
 

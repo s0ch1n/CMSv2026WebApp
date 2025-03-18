@@ -144,7 +144,7 @@ namespace CMSv2026WebApp.Controllers
                 case 4:
                     return RedirectToAction("Index", "Pharmacist");
                 case 5:
-                    return RedirectToAction("Index", "LabTechnician");
+                    return RedirectToAction("Index", "LabTest");
                 default:
                     return RedirectToAction("Login", "Accounts");
             }

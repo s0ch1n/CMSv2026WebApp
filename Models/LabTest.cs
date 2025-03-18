@@ -11,6 +11,11 @@
         public DateTime TestDate { get; set; } = DateTime.Now;
         public string TestStatus { get; set; } = "Pending"; // Default status
         public string? TestResult { get; set; } // Nullable, as the result might not be available initially
+        public decimal Amount { get; set; }
+        public decimal? ReferenceMinRange { get; set; }
+        public decimal? ReferenceMaxRange { get; set; }
+        public bool SampleRequired { get; set; }
+
 
         // Navigation Properties (for Entity Framework)
         public Patient? Patient { get; set; }

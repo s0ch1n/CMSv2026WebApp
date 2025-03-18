@@ -1,0 +1,42 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model LabTestReport
+
+<h2>Generate Lab Test Report</h2>
+
+<form asp-action="GenerateReport" method="post">
+    <input type="hidden" asp-for="LabTestPrescriptionId" />
+    <input type="hidden" asp-for="TestName" />
+    <input type="hidden" asp-for="PatientName" />
+    <input type="hidden" asp-for="PrescribedByDoctor" />
+    <input type="hidden" asp-for="GeneratedByLabTechnician" />
+
+    <div class="form-group">
+        <label asp-for="TestName" class="control-label"></label>
+        <input asp-for="TestName" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="PatientName" class="control-label"></label>
+        <input asp-for="PatientName" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="PrescribedByDoctor" class="control-label"></label>
+        <input asp-for="PrescribedByDoctor" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="GeneratedByLabTechnician" class="control-label"></label>
+        <input asp-for="GeneratedByLabTechnician" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="ReportDate" class="control-label"></label>
+        <input asp-for="ReportDate" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="Remarks" class="control-label"></label>
+        <textarea asp-for="Remarks" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Generate PDF" class="btn btn-primary" />
+    </div>
+</form>

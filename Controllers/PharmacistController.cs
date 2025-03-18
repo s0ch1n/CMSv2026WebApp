@@ -69,7 +69,7 @@ namespace CMSv2026WebApp.Controllers
             var medicineTypes = _pharmacistService.GetMedicineTypes() ?? new List<MedicineType>(); // Prevent null
             ViewBag.MedicineTypes = new SelectList(medicineTypes, "MedicineTypeId", "MedicineTypeName");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 try
                 {
@@ -86,6 +86,7 @@ namespace CMSv2026WebApp.Controllers
                     _pharmacistService.AddStock(medicineId, model.Unit);
 
                     TempData["ShowToast"] = true;
+
                     return RedirectToAction("Index");
                 }
                 catch (ApplicationException ex)
@@ -124,7 +125,7 @@ namespace CMSv2026WebApp.Controllers
         [HttpPost]
         public IActionResult Edit(Medicine medicine)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 try
                 {

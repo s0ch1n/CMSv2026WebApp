@@ -15,35 +15,364 @@ namespace CMSv2026WebApp.Repositories
             _connectionString = configuration.GetConnectionString("ConnStrMVC");
         }
 
+        // Lab Test Methods
         public void AddLabTest(LabTest labTest)
         {
-            throw new NotImplementedException();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("sp_AddLabTest", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@TestName", labTest.TestName);
+                cmd.Parameters.AddWithValue("@Amount", labTest.Amount);
+                cmd.Parameters.AddWithValue("@ReferenceMinRange", labTest.ReferenceMinRange);
+                cmd.Parameters.AddWithValue("@ReferenceMaxRange", labTest.ReferenceMaxRange);
+                cmd.Parameters.AddWithValue("@SampleRequired", labTest.SampleRequired);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public List<LabTest> GetAllLabTests()
         {
-            throw new NotImplementedException();
+            List<LabTest> labTests = new List<LabTest>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM LabTest WHERE IsActive = 1", con);
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        labTests.Add(new LabTest
+                        {
+                            LabTestId = Convert.ToInt32(reader["LabTestId"]),
+                            TestName = reader["TestName"].ToString(),
+                            Amount = Convert.ToDecimal(reader["Amount"]),
+                            ReferenceMinRange = reader["ReferenceMinRange"] != DBNull.Value ? Convert.ToDecimal(reader["ReferenceMinRange"]) : (decimal?)null,
+                            ReferenceMaxRange = reader["ReferenceMaxRange"] != DBNull.Value ? Convert.ToDecimal(reader["ReferenceMaxRange"]) : (decimal?)null,
+                            SampleRequired = Convert.ToBoolean(reader["SampleRequired"])
+                        });
+                    }
+                }
+            }
+
+            return labTests;
         }
 
-        public List<LabTestCategory> GetLabTestCategories()
+        public LabTest GetLabTestById(int labTestId)
         {
-            throw new NotImplementedException();
+            LabTest labTest = null;
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM LabTest WHERE LabTestId = @LabTestId AND IsActive = 1", con);
+                cmd.Parameters.AddWithValue("@LabTestId", labTestId);
+
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        labTest = new LabTest
+                        {
+                            LabTestId = Convert.ToInt32(reader["LabTestId"]),
+                            TestName = reader["TestName"].ToString(),
+                            Amount = Convert.ToDecimal(reader["Amount"]),
+                            ReferenceMinRange = reader["ReferenceMinRange"] != DBNull.Value ? Convert.ToDecimal(reader["ReferenceMinRange"]) : (decimal?)null,
+                            ReferenceMaxRange = reader["ReferenceMaxRange"] != DBNull.Value ? Convert.ToDecimal(reader["ReferenceMaxRange"]) : (decimal?)null,
+                            SampleRequired = Convert.ToBoolean(reader["SampleRequired"])
+                        };
+                    }
+                }
+            }
+
+            return labTest;
+        }
+
+        public void UpdateLabTest(LabTest labTest)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("sp_UpdateLabTest", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@LabTestId", labTest.LabTestId);
+                cmd.Parameters.AddWithValue("@TestName", labTest.TestName);
+                cmd.Parameters.AddWithValue("@Amount", labTest.Amount);
+                cmd.Parameters.AddWithValue("@ReferenceMinRange", labTest.ReferenceMinRange);
+                cmd.Parameters.AddWithValue("@ReferenceMaxRange", labTest.ReferenceMaxRange);
+                cmd.Parameters.AddWithValue("@SampleRequired", labTest.SampleRequired);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // Lab Test Prescription Methods
+        public void AddLabTestPrescription(LabTestPrescription labTestPrescription)
+        {
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("sp_AddLabTestPrescription", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@LabTestId", labTestPrescription.LabTestId);
+                cmd.Parameters.AddWithValue("@AppointmentId", labTestPrescription.AppointmentId);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<LabTestPrescription> GetAllLabTestPrescriptions()
+        {
+            List<LabTestPrescription> prescriptions = new List<LabTestPrescription>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+            SELECT 
+                ltp.LabTestPrescriptionId,
+                ltp.LabTestId,
+                lt.TestName,
+                ltp.AppointmentId,
+                a.AppointmentDate,
+                p.PatientName,
+                s.FullName AS DoctorName,
+                ltp.LabTestValue,
+                ltp.Remarks,
+                ltp.CreatedDate
+            FROM LabTestPrescription ltp
+            INNER JOIN LabTest lt ON ltp.LabTestId = lt.LabTestId
+            INNER JOIN Appointment a ON ltp.AppointmentId = a.AppointmentId
+            INNER JOIN Patient p ON a.PatientId = p.PatientId
+            INNER JOIN Doctors d ON a.DoctorId = d.DoctorId
+            INNER JOIN Staffs s ON d.StaffId = s.StaffId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        prescriptions.Add(new LabTestPrescription
+                        {
+                            LabTestPrescriptionId = Convert.ToInt32(reader["LabTestPrescriptionId"]),
+                            LabTestId = Convert.ToInt32(reader["LabTestId"]),
+                            LabTest = new LabTest
+                            {
+                                TestName = reader["TestName"].ToString()
+                            },
+                            AppointmentId = Convert.ToInt32(reader["AppointmentId"]),
+                            Appointment = new Appointment
+                            {
+                                AppointmentDate = Convert.ToDateTime(reader["AppointmentDate"]),
+                                Patient = new Patient
+                                {
+                                    PatientName = reader["PatientName"].ToString()
+                                },
+                                Doctor = new Doctor
+                                {
+                                    Staff = new Staff
+                                    {
+                                        FullName = reader["DoctorName"].ToString()
+                                    }
+                                }
+                            },
+                            LabTestValue = reader["LabTestValue"] != DBNull.Value ? reader["LabTestValue"].ToString() : null,
+                            Remarks = reader["Remarks"] != DBNull.Value ? reader["Remarks"].ToString() : null,
+                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                            //IsCompleted = Convert.ToBoolean(reader["IsCompleted"])
+                        });
+                    }
+                }
+            }
+
+            return prescriptions;
+        }
+
+
+        public List<LabTestPrescription> GetPendingLabTestPrescriptions()
+        {
+            List<LabTestPrescription> prescriptions = new List<LabTestPrescription>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM LabTestPrescription WHERE IsCompleted = 0", con);
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        prescriptions.Add(new LabTestPrescription
+                        {
+                            LabTestPrescriptionId = Convert.ToInt32(reader["LabTestPrescriptionId"]),
+                            LabTestId = Convert.ToInt32(reader["LabTestId"]),
+                            AppointmentId = Convert.ToInt32(reader["AppointmentId"]),
+                            LabTestValue = reader["LabTestValue"] != DBNull.Value ? reader["LabTestValue"].ToString() : null,
+                            Remarks = reader["Remarks"] != DBNull.Value ? reader["Remarks"].ToString() : null,
+                            CreatedDate = Convert.ToDateTime(reader["CreatedDate"]),
+                            IsCompleted = Convert.ToBoolean(reader["IsCompleted"])
+                        });
+                    }
+                }
+            }
+
+            return prescriptions;
         }
 
         public LabTestPrescription GetLabTestPrescriptionById(int labTestPrescriptionId)
         {
-            throw new NotImplementedException();
-        }
+            LabTestPrescription prescription = null;
 
-        public List<LabTestPrescription> GetLabTestPrescriptions()
-        {
-            throw new NotImplementedException();
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                string query = @"
+        SELECT 
+            ltp.*, 
+            lt.TestName AS LabTestName, 
+            a.AppointmentDate, 
+            p.PatientName, 
+            d.DoctorId, 
+            s.FullName AS DoctorName
+        FROM LabTestPrescription ltp
+        LEFT JOIN LabTest lt ON ltp.LabTestId = lt.LabTestId
+        LEFT JOIN Appointment a ON ltp.AppointmentId = a.AppointmentId
+        LEFT JOIN Patient p ON a.PatientId = p.PatientId
+        LEFT JOIN Doctors d ON a.DoctorId = d.DoctorId
+        LEFT JOIN Staffs s ON d.StaffId = s.StaffId
+        WHERE ltp.LabTestPrescriptionId = @LabTestPrescriptionId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabTestPrescriptionId", labTestPrescriptionId);
+
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        prescription = new LabTestPrescription
+                        {
+                            LabTestPrescriptionId = Convert.ToInt32(reader["LabTestPrescriptionId"]),
+                            LabTestId = reader["LabTestId"] != DBNull.Value ? Convert.ToInt32(reader["LabTestId"]) : 0,
+                            AppointmentId = reader["AppointmentId"] != DBNull.Value ? Convert.ToInt32(reader["AppointmentId"]) : 0,
+                            LabTestValue = reader["LabTestValue"] != DBNull.Value ? reader["LabTestValue"].ToString() : string.Empty,
+                            Remarks = reader["Remarks"] != DBNull.Value ? reader["Remarks"].ToString() : string.Empty,
+                            CreatedDate = reader["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedDate"]) : DateTime.MinValue,
+                            LabTest = new LabTest
+                            {
+                                TestName = reader["LabTestName"] != DBNull.Value ? reader["LabTestName"].ToString() : "Unknown Test"
+                            },
+                            Appointment = new Appointment
+                            {
+                                AppointmentDate = reader["AppointmentDate"] != DBNull.Value ? Convert.ToDateTime(reader["AppointmentDate"]) : DateTime.MinValue,
+                                Patient = new Patient
+                                {
+                                    PatientName = reader["PatientName"] != DBNull.Value ? reader["PatientName"].ToString() : "Unknown Patient"
+                                },
+                                Doctor = new Doctor
+                                {
+                                    Staff = new Staff
+                                    {
+                                        FullName = reader["DoctorName"] != DBNull.Value ? reader["DoctorName"].ToString() : "Unknown Doctor"
+                                    }
+                                }
+                            }
+                        };
+
+                    }
+                }
+            }
+
+            return prescription;
         }
 
         public void UpdateLabTestPrescription(LabTestPrescription labTestPrescription)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_UpdateLabTestPrescription", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        // Add all required parameters
+                        cmd.Parameters.AddWithValue("@LabTestPrescriptionId", labTestPrescription.LabTestPrescriptionId);
+                        cmd.Parameters.AddWithValue("@LabTestValue", labTestPrescription.LabTestValue ?? (object)DBNull.Value); // Handle null
+                        cmd.Parameters.AddWithValue("@Remarks", labTestPrescription.Remarks ?? (object)DBNull.Value); // Handle null
+                        cmd.Parameters.AddWithValue("@IsCompleted", labTestPrescription.IsCompleted);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception($"Error executing stored procedure sp_UpdateLabTestPrescription: {ex.Message}", ex);
+            }
         }
+        public void AddLabTestReport(LabTestReport labTestReport)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_AddLabTestReport", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@LabTestPrescriptionId", labTestReport.LabTestPrescriptionId);
+                        cmd.Parameters.AddWithValue("@TestName", labTestReport.TestName);
+                        cmd.Parameters.AddWithValue("@PatientName", labTestReport.PatientName);
+                        cmd.Parameters.AddWithValue("@PrescribedByDoctor", labTestReport.PrescribedByDoctor);
+                        cmd.Parameters.AddWithValue("@GeneratedByLabTechnician", labTestReport.GeneratedByLabTechnician);
+                        cmd.Parameters.AddWithValue("@ReportDate", labTestReport.ReportDate);
+                        cmd.Parameters.AddWithValue("@Remarks", labTestReport.Remarks);
+
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception($"Error executing stored procedure sp_AddLabTestReport: {ex.Message}", ex);
+            }
+        }
+
+        public List<LabTestReport> GetAllLabTestReports()
+        {
+            List<LabTestReport> reports = new List<LabTestReport>();
+
+            using (SqlConnection con = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM LabTestReport", con);
+                con.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        reports.Add(new LabTestReport
+                        {
+                            LabTestReportId = Convert.ToInt32(reader["LabTestReportId"]),
+                            LabTestPrescriptionId = Convert.ToInt32(reader["LabTestPrescriptionId"]),
+                            TestName = reader["TestName"].ToString(),
+                            PrescribedByDoctor = reader["PrescribedByDoctor"].ToString(),
+                            GeneratedByLabTechnician = reader["GeneratedByLabTechnician"].ToString(),
+                            ReportDate = Convert.ToDateTime(reader["ReportDate"]),
+                            Remarks = reader["Remarks"] != DBNull.Value ? reader["Remarks"].ToString() : null
+                        });
+                    }
+                }
+            }
+
+            return reports;
+        }
+
     }
 }
 //        public void AddLabTest(LabTest labTest)

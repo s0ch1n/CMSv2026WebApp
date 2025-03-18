@@ -1,6 +1,8 @@
 using CMSv2026WebApp.Repositories;
+using CMSv2026WebApp.Service;
 using CMSv2026WebApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+
 
 namespace CMSv2026WebApp
 {
@@ -52,6 +54,14 @@ namespace CMSv2026WebApp
             builder.Services.AddScoped<IPharmacistService, PharmacistService>();
 
             builder.Services.AddScoped<IPharmacistRepository, PharmacistRepository>();
+
+            builder.Services.AddScoped<PdfService, PdfService>();
+
+            builder.Services.AddLogging();
+
+            builder.Services.AddScoped<ILabTestService, LabTestService>();
+
+            builder.Services.AddScoped<ILabTestRepository, LabTestRepository>();
 
 
             var app = builder.Build();

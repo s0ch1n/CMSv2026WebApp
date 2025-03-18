@@ -1,0 +1,29 @@
+﻿@model List<LabTestPrescription>
+
+<h2>Pending Lab Test Prescriptions</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Test Name</th>
+            <th>Appointment Date</th>
+            <th>Patient Name</th>
+            <th>Doctor Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var prescription in Model)
+        {
+            <tr>
+                <td>@prescription.LabTest?.TestName</td>
+                <td>@prescription.Appointment?.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                <td>@prescription.Appointment?.Patient?.PatientName</td>
+                <td>@prescription.Appointment?.Doctor?.Staff?.FullName</td>
+                <td>
+                    <a asp-action="GenerateReport" asp-route-id="@prescription.LabTestPrescriptionId" class="btn btn-primary">Generate Report</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

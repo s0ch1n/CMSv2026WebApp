@@ -2,16 +2,20 @@
 
 public interface ILabTestRepository
 {
-    //List<LabTestPrescription> GetPrescribedLabTests();
-    //List<LabTestPrescriptionViewModel> GetPrescribedLabTestss();
-    //void GenerateLabTestReport(int labTestPrescriptionId);
-    //LabTestPrescription GetPrescriptionById(int id);
-    //void AddTestValue(int labTestPrescriptionId, string testValue, string remarks);
+    // Lab Test Methods
     void AddLabTest(LabTest labTest);
+    List<LabTest> GetAllLabTests();
+    LabTest GetLabTestById(int labTestId);
+    void UpdateLabTest(LabTest labTest);
+
+    // Lab Test Prescription Methods
+    void AddLabTestPrescription(LabTestPrescription labTestPrescription);
+    List<LabTestPrescription> GetAllLabTestPrescriptions();
+    List<LabTestPrescription> GetPendingLabTestPrescriptions(); // Get prescriptions not yet completed
     LabTestPrescription GetLabTestPrescriptionById(int labTestPrescriptionId);
     void UpdateLabTestPrescription(LabTestPrescription labTestPrescription);
-    //List<LabTestPrescription> GetLabTestPrescriptions(int StaffId);
-    List<LabTestCategory> GetLabTestCategories();
-    List<LabTest> GetAllLabTests();
-    List<LabTestPrescription> GetLabTestPrescriptions();
+
+    // Lab Test Report Methods
+    void AddLabTestReport(LabTestReport labTestReport);
+    List<LabTestReport> GetAllLabTestReports();
 }

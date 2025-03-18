@@ -12,6 +12,7 @@ namespace CMSv2026WebApp.Models
         public int LabTestId { get; set; }  // Foreign Key for LabTest
 
         [Required, MaxLength(100)]
+
         public string LabTestName { get; set; }
 
         [Required, MaxLength(100)]
@@ -24,6 +25,8 @@ namespace CMSv2026WebApp.Models
         [Required]
         public int AppointmentId { get; set; }  // Foreign Key for Appointment
 
+        public bool IsCompleted { get; set; } = false; // Indicates if the report is generate
+
         public ICollection<LabTestResult> LabTestResults { get; set; }
 
         // Navigation Properties
@@ -32,5 +35,8 @@ namespace CMSv2026WebApp.Models
 
         [ForeignKey("AppointmentId")]
         public virtual Appointment? Appointment { get; set; }
+
+
+
     }
 }
