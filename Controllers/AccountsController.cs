@@ -80,45 +80,6 @@ namespace CMSv2026WebApp.Controllers
             return View(loginVModel);
         }
 
-
-        ////POST Accounts/Login
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public IActionResult Login(LoginViewModel loginVModel)
-        //{
-        //    //Validate
-        //    if (ModelState.IsValid)
-        //    {
-        //        var availableUser = _userService.AuthenticateTheUser(loginVModel.UserName, loginVModel.Password);
-        //        if (availableUser != null)
-        //        {
-        //            //Stores in cookies
-        //            Response.Cookies.Append("StaffId", availableUser.StaffId.ToString(),
-        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
-        //            Response.Cookies.Append("UserName", availableUser.UserName.ToString(),
-        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
-        //            Response.Cookies.Append("RoleId", availableUser.RoleId?.ToString() ?? string.Empty,
-        //            new CookieOptions { Expires = DateTime.Now.AddHours(1) });
-
-        //            //Message
-        //            TempData["SuccessMessage"] = $"Welcome, {availableUser.UserName} !";
-
-        //            //Custom redirect
-        //            return RedirectToRoleBasedDashboard(availableUser.RoleId ?? 0);
-
-        //        }
-
-        //        TempData["ErrorMessage"] = "Invalid Username or Password!";
-
-
-        //    }
-
-        //    ViewData["PageTitle"] = "Login";
-        //    return View(loginVModel);
-        //}
-
-
-        //GET Accounts/Logout
         public IActionResult Logout()
         {
             //Clear Cookies

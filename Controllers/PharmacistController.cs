@@ -108,8 +108,6 @@ namespace CMSv2026WebApp.Controllers
             return View(model);
         }
 
-
-
         [HttpGet]
         public IActionResult Edit(int id)
         {
@@ -118,17 +116,44 @@ namespace CMSv2026WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewBag.MedicineTypes = _pharmacistService.GetMedicineTypes();
-            return View(medicine);
+
+            var medicineTypes = _pharmacistService.GetMedicineTypes();
+            ViewBag.MedicineTypes = new SelectList(medicineTypes, "MedicineTypeId", "MedicineTypeName");
+
+            var model = new MedicineViewModel
+            {
+                MedicineId = medicine.MedicineId,
+                MedicineName = medicine.MedicineName,
+                MedicineTypeId = medicine.MedicineTypeId,
+                ExpiryDate = medicine.ExpiryDate,
+                Unit = medicine.Unit,
+                MedicineTypes = medicineTypes.Select(mt => new SelectListItem
+                {
+                    Value = mt.MedicineTypeId.ToString(),
+                    Text = mt.MedicineTypeName
+                }).ToList()
+            };
+
+            return View(model);
         }
 
         [HttpPost]
-        public IActionResult Edit(Medicine medicine)
+        public IActionResult Edit(MedicineViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 try
                 {
+                    var medicine = new Medicine
+                    {
+                        MedicineId = model.MedicineId,
+                        MedicineName = model.MedicineName,
+                        MedicineTypeId = model.MedicineTypeId,
+                        ExpiryDate = model.ExpiryDate,
+                        Unit = model.Unit,
+                        IsActive = true
+                    };
+
                     _pharmacistService.UpdateMedicine(medicine);
                     TempData["SuccessMessage"] = "Medicine updated successfully!";
                     TempData["ShowToast"] = true;
@@ -143,9 +168,56 @@ namespace CMSv2026WebApp.Controllers
                     ModelState.AddModelError(string.Empty, "An error occurred while updating the medicine. Please try again.");
                 }
             }
-            ViewBag.MedicineTypes = _pharmacistService.GetMedicineTypes();
-            return View(medicine);
+
+            var medicineTypes = _pharmacistService.GetMedicineTypes();
+            ViewBag.MedicineTypes = new SelectList(medicineTypes, "MedicineTypeId", "MedicineTypeName");
+
+            model.MedicineTypes = medicineTypes.Select(mt => new SelectListItem
+            {
+                Value = mt.MedicineTypeId.ToString(),
+                Text = mt.MedicineTypeName
+            }).ToList();
+
+            return View(model);
         }
+
+
+        //[HttpGet]
+        //public IActionResult Edit(int id)
+        //{
+        //    var medicine = _pharmacistService.GetMedicineById(id);
+        //    if (medicine == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    ViewBag.MedicineTypes = _pharmacistService.GetMedicineTypes();
+        //    return View(medicine);
+        //}
+
+        //[HttpPost]
+        //public IActionResult Edit(Medicine medicine)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            _pharmacistService.UpdateMedicine(medicine);
+        //            TempData["SuccessMessage"] = "Medicine updated successfully!";
+        //            TempData["ShowToast"] = true;
+        //            return RedirectToAction("Index");
+        //        }
+        //        catch (ApplicationException ex)
+        //        {
+        //            ModelState.AddModelError(string.Empty, ex.Message);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            ModelState.AddModelError(string.Empty, "An error occurred while updating the medicine. Please try again.");
+        //        }
+        //    }
+        //    ViewBag.MedicineTypes = _pharmacistService.GetMedicineTypes();
+        //    return View(medicine);
+        //}
 
         [HttpPost]
         public IActionResult Delete(int id)
@@ -162,12 +234,13 @@ namespace CMSv2026WebApp.Controllers
 
             var dispatchViewModels = prescriptions.Select(p => new DispatchMedicineViewModel
             {
+                AppointmentId = p.Appointment?.AppointmentId ?? 0, // Ensure this line is included
                 PrescriptionId = p.PrescriptionId,
                 MedicineId = p.MedicineId,
                 MedicineName = p.MedicineName,
                 AvailableStock = _pharmacistService.GetStockByMedicineId(p.MedicineId)?.StockInHand ?? 0,
-                PatientName = p.Appointment?.Patient?.PatientName ?? "Unknown",
-                DoctorName = p.Appointment?.Doctor?.Staff?.FullName ?? "Unknown",
+                PatientName = p.PatientName ?? "Unknown",
+                DoctorName = p.DoctorName ?? "Unknown",
                 Dosage = p.Dosage,
                 Frequency = p.Frequency,
                 Duration = p.Duration

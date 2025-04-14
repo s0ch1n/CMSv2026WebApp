@@ -9,7 +9,7 @@ namespace CMSv2026WebApp.ViewModel
         public string MedicineName { get; set; }
         public int AvailableStock { get; set; }
         public int DispatchQuantity { get; set; }
-
+        public int AppointmentId { get; set; }
         public string PatientName { get; set; }
         public string DoctorName { get; set; }
         public string Dosage { get; set; }
@@ -21,7 +21,7 @@ namespace CMSv2026WebApp.ViewModel
         public virtual Appointment Appointment { get; set; }
         //public virtual Doctor Doctor { get; set; }
         //public virtual Staff Staff { get; set; }
-        //public virtual Patient Patient { get; set; }
+        public virtual Patient Patient { get; set; }
 
     }
 }

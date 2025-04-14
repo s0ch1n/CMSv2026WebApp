@@ -9,6 +9,7 @@
 <table class="table table-bordered">
     <thead>
         <tr>
+            <th>Appointment ID</th>
             <th>Prescription ID</th>
             <th>Patient Name</th>
             <th>Doctor Name</th>
@@ -25,6 +26,7 @@
         @foreach (var prescription in Model)
         {
             <tr>
+				<td>@prescription.AppointmentId</td>
                 <td>@prescription.PrescriptionId</td>
                 <td>@prescription.PatientName</td>
                 <td>@prescription.DoctorName</td>

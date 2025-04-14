@@ -28,16 +28,6 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
-        //public Patient GetPatientById(int patientId)
-        //{
-        //    var query = "SELECT * FROM Patients WHERE PatientId = @PatientId";
-
-        //    using (var connection = new SqlConnection(_connectionString))
-        //    {
-        //        connection.Open();
-        //        return connection.QuerySingleOrDefault<Patient>(query, new { PatientId = patientId });
-        //    }
-        //}
 
         public void AddConsultation(Consultation consultation)
         {

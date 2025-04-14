@@ -85,40 +85,6 @@ namespace CMSv2026WebApp.Repositories
         }
 
 
-
-
-        //public void AddStaff(Staff staff)
-        //{
-        //    using (var connection = new SqlConnection(_connectionString))
-        //    {
-        //        connection.Open();
-
-        //        // Calling the stored procedure 'AddStaff' instead of directly writing the INSERT SQL
-        //        var sql = "AddStaff"; // The name of the stored procedure
-
-        //        using (var command = new SqlCommand(sql, connection))
-        //        {
-        //            command.CommandType = CommandType.StoredProcedure; // Specify that we are calling a stored procedure
-
-        //            // Adding parameters to the stored procedure
-        //            command.Parameters.AddWithValue("@FullName", staff.FullName);
-        //            command.Parameters.AddWithValue("@Gender", staff.Gender);
-        //            command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
-        //            command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
-        //            command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
-        //            command.Parameters.AddWithValue("@UserName", staff.UserName);
-        //            command.Parameters.AddWithValue("@Password", staff.Password);
-        //            command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
-        //            command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
-        //            command.Parameters.AddWithValue("@RoleId", staff.RoleId);
-        //            command.Parameters.AddWithValue("@IsActive", staff.IsActive);
-
-        //            // Execute the stored procedure
-        //            command.ExecuteNonQuery();
-        //        }
-        //    }
-        //}
-
         public Staff UpdateStaff(Staff staff)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -278,35 +244,7 @@ namespace CMSv2026WebApp.Repositories
             }
         }
 
-        //public void UpdateStaff(Staff staff)
-        //{
-        //    using (var connection = new SqlConnection(_connectionString))
-        //    {
-        //        connection.Open();
-        //        var sql = @"UPDATE Staffs SET FullName=@FullName, Gender=@Gender, DateOfJoining=@DateOfJoining, 
-        //                DateOfBirth=@DateOfBirth, MobileNumber=@MobileNumber, UserName=@UserName, 
-        //                Password=@Password, Qualification=@Qualification, EmailAddress=@EmailAddress, 
-        //                RoleId=@RoleId, IsActive=@IsActive WHERE StaffId=@StaffId";
-
-        //        using (var command = new SqlCommand(sql, connection))
-        //        {
-        //            command.Parameters.AddWithValue("@StaffId", staff.StaffId);
-        //            command.Parameters.AddWithValue("@FullName", staff.FullName);
-        //            command.Parameters.AddWithValue("@Gender", staff.Gender);
-        //            command.Parameters.AddWithValue("@DateOfJoining", staff.DateOfJoining);
-        //            command.Parameters.AddWithValue("@DateOfBirth", (object?)staff.DateOfBirth ?? DBNull.Value);
-        //            command.Parameters.AddWithValue("@MobileNumber", staff.MobileNumber);
-        //            command.Parameters.AddWithValue("@UserName", staff.UserName);
-        //            command.Parameters.AddWithValue("@Password", staff.Password);
-        //            command.Parameters.AddWithValue("@Qualification", (object?)staff.Qualification ?? DBNull.Value);
-        //            command.Parameters.AddWithValue("@EmailAddress", staff.EmailAddress);
-        //            command.Parameters.AddWithValue("@RoleId", staff.RoleId);
-        //            command.Parameters.AddWithValue("@IsActive", staff.IsActive);
-
-        //            command.ExecuteNonQuery();
-        //        }
-        //    }
-        //}
+        
 
         public void UpdateUserStatus(int staffId, bool isActive)
         {
